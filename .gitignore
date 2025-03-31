@@ -27,6 +27,6 @@ dist-ssr
 */target
 **/*.rs.bk
 Cargo.lock
-bin/
+src-wasm/bin/
 pkg/
 wasm-pack.log

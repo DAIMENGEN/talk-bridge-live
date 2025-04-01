@@ -1,0 +1,45 @@
+.desktop-welcome {
+  position: relative;
+  background-image: url("@src/assets/jpg/background.jpg");
+  background-size: cover;
+  background-position: right center;
+  height: 100vh;
+
+  .frosted-glass {
+    width: 100%;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.2); /* 半透明背景 */
+    backdrop-filter: blur(2px); /* 应用模糊效果 */
+    -webkit-backdrop-filter: blur(10px); /* 兼容 Safari */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* 半透明边框 */
+    color: white;
+  }
+
+  .desktop-welcome-content {
+    position: absolute;
+    top: 30%;
+    color: white;
+    display: flex;
+    max-width: 500px;
+    padding-left: 50px;
+
+    h1 {
+      font-size: 40px;
+    }
+
+    .desktop-welcome-content-button {
+      padding-top: 20px;
+
+      button {
+        width: 200px;
+        height: 40px;
+        color: #14204c;
+        background: linear-gradient(90deg, #c7deff 0%, #ffffffd9 76%);
+      }
+
+      button:hover {
+        background: linear-gradient(60deg, #c7deff 0%, #ffffffd9 76%);
+      }
+    }
+  }
+}

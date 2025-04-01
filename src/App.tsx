@@ -1,6 +1,7 @@
 import "./App.scss";
 import {Button, Flex} from "antd";
 // import {invoke} from "@tauri-apps/api/core";
+import advantest from "@src/assets/svg/advantest.svg";
 import {getCurrentWindow} from "@tauri-apps/api/window";
 import {UpdateBadgeIcon} from "@src/icons/update/update-badge-icon.tsx";
 import {UpdateDoneIcon} from "@src/icons/update/update-done-icon.tsx";
@@ -12,7 +13,7 @@ function App() {
         <div className={"container"}>
             <Flex gap={0} justify={"space-between"} className={"toolbar"}>
                 <div className={"toolbar-left"}>
-                    <Button>Icon</Button>
+                    <img src={advantest} alt="Advantest" style={{height: 15}}/>
                 </div>
                 <div className={"toolbar-center"} onMouseDown={() => getCurrentWindow().startDragging()}/>
                 <div className={"toolbar-right"}>
@@ -25,7 +26,6 @@ function App() {
                             onClick={() => getCurrentWindow().close()}/>
                 </div>
             </Flex>
-            <h1>Welcome to talk bridge live!</h1>
         </div>
     );
 }

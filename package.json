@@ -12,6 +12,7 @@
     "wasm:web:build": "wasm-pack build ./src-wasm --target web && node ./wasm/update.js"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.0",
     "@ant-design/x": "^1.0.6",
     "@reduxjs/toolkit": "^2.6.1",
     "@tauri-apps/api": "^2",

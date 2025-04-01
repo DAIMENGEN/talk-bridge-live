@@ -1,6 +1,6 @@
 import React from "react";
 import {StyleUtils} from "@src/style-utils";
-import Icon from "@ant-design/icons/lib/components/Icon";
+import Icon from "@ant-design/icons";
 
 export const CloseIcon01: React.FC<{ width: number, height: number, color: string }> = (props) => {
     const icon = () => (

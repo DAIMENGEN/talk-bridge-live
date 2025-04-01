@@ -1,0 +1,58 @@
+.desktop-welcome {
+  position: relative;
+  background-color: #141414;
+  height: 100vh;
+
+  .frosted-glass {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: #1d2125;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .desktop-welcome-body {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    .desktop-welcome-content {
+      width: 70%;
+      margin: auto;
+      color: white;
+      padding-top: 20vh;
+      text-align: center;
+      height: calc(100vh - 30px);
+
+      h1 {
+        font-size: 40px;
+      }
+
+      h2 {
+        font-size: 25px;
+        color: rgba(255, 255, 255, 0.65);
+      }
+
+      h3 {
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.65);
+      }
+
+      .desktop-welcome-content-button {
+        padding-top: 30px;
+
+        button {
+          width: 200px;
+          height: 40px;
+          color: #14204c;
+          background: linear-gradient(90deg, #c7deff 0%, #ffffffd9 76%);
+        }
+
+        button:hover {
+          background: linear-gradient(60deg, #c7deff 0%, #ffffffd9 76%);
+        }
+      }
+    }
+  }
+}

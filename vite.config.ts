@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 
 // // @ts-expect-error process is a Node.js global
 // const host = process.env.TAURI_DEV_HOST;
-const host = "10.150.115.16";
+const host = "0.0.0.0";
 
 // https://vitejs.dev/config/
 export default defineConfig({

@@ -1,9 +1,12 @@
 import "./App.scss";
-import {DesktopApp} from "@src/components/desktop-app/desktop-app.tsx";
+import {BrowserRouter} from "react-router-dom";
+import {TalkBridgeLiveRoute} from "@src/route/talk-bridge-live-route.tsx";
 
 function App() {
     return (
-        <DesktopApp/>
+        <BrowserRouter>
+            <TalkBridgeLiveRoute/>
+        </BrowserRouter>
     );
 }
 

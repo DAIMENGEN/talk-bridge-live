@@ -1,0 +1,25 @@
+.desktop-app {
+  position: relative;
+  background-color: #141414;
+  height: 100vh;
+
+  .frosted-glass {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: #1d2125;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .toolbar-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    z-index: 9999;
+    display: none;
+  }
+}
+

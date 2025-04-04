@@ -2,8 +2,10 @@ import "./welcome.scss";
 import {Button, Space} from "antd";
 import {invoke} from "@tauri-apps/api/core";
 import {Toolbar} from "@src/components/desktop-app/toolbar/toolbar.tsx";
+import {useState} from "react";
 
 export const Welcome = () => {
+    const [deviceName, setDeviceName] = useState<string>();
 
     return (
         <div className={"desktop-welcome"}>
@@ -21,7 +23,7 @@ export const Welcome = () => {
                         </h3>
                         <div className={"desktop-welcome-content-button"}>
                             <Button size={"large"} onClick={() => {
-                                invoke("start_recording").then(() => {
+                                invoke("start_recording", { device_name: deviceName }).then(() => {
                                     console.log("start recording")
                                 });
                             }}>开始录音</Button>
@@ -30,6 +32,13 @@ export const Welcome = () => {
                                     console.log("stop recording")
                                 });
                             }}>停止录音</Button>
+
+                            <Button size={"large"} onClick={() => {
+                                invoke<string[]>("list_microphone_names").then((device_names) => {
+                                    console.log("Device names: ", device_names);
+                                    setDeviceName(device_names[0]);
+                                });
+                            }}>设备列表</Button>
                         </div>
                     </Space>
                 </div>

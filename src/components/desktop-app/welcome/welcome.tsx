@@ -1,12 +1,7 @@
 import "./welcome.scss";
-import {useState} from "react";
 import {Button, Space} from "antd";
-import {TauriDeviceService} from "@src/tauri-services/tauri-device-service.ts";
-import {TauriAudioRecorderService} from "@src/tauri-services/tauri-audio-recorder-service.ts";
 
 export const Welcome = () => {
-    const [deviceName, setDeviceName] = useState<string>();
-
     return (
         <div className={"desktop-welcome"}>
             <div className={"desktop-welcome-content"}>
@@ -19,25 +14,7 @@ export const Welcome = () => {
                         Talk Bridge Live 让语言不再成为沟通的障碍，让企业会议更加高效、顺畅。无论是跨国团队协作、行业论坛，还是国际商务洽谈，都能助您轻松实现零距离交流！
                     </h3>
                     <div className={"desktop-welcome-content-button"}>
-                        <Button size={"large"} onClick={() => {
-                            if (deviceName) {
-                                TauriAudioRecorderService.startRecording(deviceName).then(() => {
-                                    console.log("start recording")
-                                });
-                            }
-                        }}>开始录音</Button>
-                        <Button size={"large"} onClick={() => {
-                            TauriAudioRecorderService.stopRecording().then(() => {
-                                console.log("stop recording")
-                            });
-                        }}>停止录音</Button>
-
-                        <Button size={"large"} onClick={() => {
-                            TauriDeviceService.listMicrophoneNames().then((device_names) => {
-                                console.log("Device names: ", device_names);
-                                setDeviceName(device_names[0]);
-                            });
-                        }}>设备列表</Button>
+                        <Button size={"large"} >开始使用</Button>
                     </div>
                 </Space>
             </div>

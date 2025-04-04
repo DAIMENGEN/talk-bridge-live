@@ -17,45 +17,7 @@ impl Microphone {
             stream: None,
         }
     }
-    pub fn play(&mut self) {
-        if let Some(stream) = &self.stream {
-            match stream.play() {
-                Ok(_) => {
-                    info!(
-                        "Microphone {} stream was started.",
-                        self.get_microphone_name()
-                    );
-                }
-                Err(err) => {
-                    error!(
-                        "Microphone {} stream start error: {}",
-                        self.get_microphone_name(),
-                        err
-                    );
-                }
-            }
-        }
-    }
-    pub fn pause(&mut self) {
-        if let Some(stream) = &self.stream {
-            match stream.pause() {
-                Ok(_) => {
-                    info!(
-                        "Microphone {} stream was paused.",
-                        self.get_microphone_name()
-                    );
-                }
-                Err(err) => {
-                    error!(
-                        "Microphone {} stream pause error: {}",
-                        self.get_microphone_name(),
-                        err
-                    );
-                }
-            }
-        }
-    }
-    pub fn initialization(&mut self) -> Result<Receiver<Vec<f32>>, Box<dyn Error>> {
+    pub fn init(&mut self) -> Result<Receiver<Vec<f32>>, Box<dyn Error>> {
         let config = self.get_microphone_config();
         let microphone_name = self.get_microphone_name();
         let sample_format = self.get_microphone_sample_format();
@@ -94,6 +56,44 @@ impl Microphone {
             }
         };
         Ok(rx)
+    }
+    pub fn play(&mut self) {
+        if let Some(stream) = &self.stream {
+            match stream.play() {
+                Ok(_) => {
+                    info!(
+                        "Microphone {} stream was started.",
+                        self.get_microphone_name()
+                    );
+                }
+                Err(err) => {
+                    error!(
+                        "Microphone {} stream start error: {}",
+                        self.get_microphone_name(),
+                        err
+                    );
+                }
+            }
+        }
+    }
+    pub fn pause(&mut self) {
+        if let Some(stream) = &self.stream {
+            match stream.pause() {
+                Ok(_) => {
+                    info!(
+                        "Microphone {} stream was paused.",
+                        self.get_microphone_name()
+                    );
+                }
+                Err(err) => {
+                    error!(
+                        "Microphone {} stream pause error: {}",
+                        self.get_microphone_name(),
+                        err
+                    );
+                }
+            }
+        }
     }
     pub fn get_microphone_name(&self) -> String {
         self.device.name().unwrap_or_else(|_| {

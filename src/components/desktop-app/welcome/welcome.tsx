@@ -1,5 +1,6 @@
 import "./welcome.scss";
 import {Button, Space} from "antd";
+import {invoke} from "@tauri-apps/api/core";
 import {Toolbar} from "@src/components/desktop-app/toolbar/toolbar.tsx";
 
 export const Welcome = () => {
@@ -19,7 +20,16 @@ export const Welcome = () => {
                             Talk Bridge Live 让语言不再成为沟通的障碍，让企业会议更加高效、顺畅。无论是跨国团队协作、行业论坛，还是国际商务洽谈，都能助您轻松实现零距离交流！
                         </h3>
                         <div className={"desktop-welcome-content-button"}>
-                            <Button size={"large"}>开始使用</Button>
+                            <Button size={"large"} onClick={() => {
+                                invoke("start_recording").then(() => {
+                                    console.log("start recording")
+                                });
+                            }}>开始录音</Button>
+                            <Button size={"large"} onClick={() => {
+                                invoke("stop_recording").then(() => {
+                                    console.log("stop recording")
+                                });
+                            }}>停止录音</Button>
                         </div>
                     </Space>
                 </div>

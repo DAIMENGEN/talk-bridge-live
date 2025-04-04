@@ -16,6 +16,7 @@
         "width": 1152,
         "height": 648,
         "devtools": true,
+        "transparent": true,
         "decorations": false
       }
     ],

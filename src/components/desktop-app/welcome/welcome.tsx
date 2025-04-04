@@ -1,8 +1,9 @@
 import "./welcome.scss";
-import {Button, Space} from "antd";
-import {invoke} from "@tauri-apps/api/core";
-import {Toolbar} from "@src/components/desktop-app/toolbar/toolbar.tsx";
 import {useState} from "react";
+import {Button, Space} from "antd";
+import {Toolbar} from "@src/components/desktop-app/toolbar/toolbar.tsx";
+import {TauriDeviceService} from "@src/tauri-services/tauri-device-service.ts";
+import {TauriAudioRecorderService} from "@src/tauri-services/tauri-audio-recorder-service.ts";
 
 export const Welcome = () => {
     const [deviceName, setDeviceName] = useState<string>();
@@ -23,18 +24,20 @@ export const Welcome = () => {
                         </h3>
                         <div className={"desktop-welcome-content-button"}>
                             <Button size={"large"} onClick={() => {
-                                invoke("start_recording", { device_name: deviceName }).then(() => {
-                                    console.log("start recording")
-                                });
+                                if (deviceName) {
+                                    TauriAudioRecorderService.startRecording(deviceName).then(() => {
+                                        console.log("start recording")
+                                    });
+                                }
                             }}>开始录音</Button>
                             <Button size={"large"} onClick={() => {
-                                invoke("stop_recording").then(() => {
+                                TauriAudioRecorderService.stopRecording().then(() => {
                                     console.log("stop recording")
                                 });
                             }}>停止录音</Button>
 
                             <Button size={"large"} onClick={() => {
-                                invoke<string[]>("list_microphone_names").then((device_names) => {
+                                TauriDeviceService.listMicrophoneNames().then((device_names) => {
                                     console.log("Device names: ", device_names);
                                     setDeviceName(device_names[0]);
                                 });

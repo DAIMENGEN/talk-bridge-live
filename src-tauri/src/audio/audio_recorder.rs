@@ -29,11 +29,15 @@ pub async fn start_recording(
         )),
     }
 }
+
 #[tauri::command]
-pub async fn stop_recording(app_state: State<'_, AppState>) -> Result<(), ()> {
-    let mut microphone_lock = app_state.microphone.lock().unwrap();
+pub async fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, String> {
+    let mut microphone_lock = app_state
+        .microphone
+        .lock()
+        .map_err(|err| format!("Failed to lock microphone: {}", err))?;
     if let Some(mut microphone) = microphone_lock.take() {
         microphone.pause();
     }
-    Ok(())
+    Ok(true)
 }

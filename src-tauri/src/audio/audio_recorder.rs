@@ -1,4 +1,4 @@
-use crate::hardware::input::microphone::Microphone;
+use crate::device::input::microphone::Microphone;
 use crate::AppState;
 use cpal::traits::HostTrait;
 use log::info;

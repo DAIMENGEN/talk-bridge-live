@@ -1,1 +1,1 @@
-pub mod voice_recorder;
+pub mod audio_recorder;

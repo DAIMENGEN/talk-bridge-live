@@ -1,7 +1,7 @@
 pub mod hardware;
 mod audio;
 
-use crate::audio::voice_recorder::{start_recording, stop_recording};
+use crate::audio::audio_recorder::{start_recording, stop_recording};
 use crate::hardware::input::microphone::Microphone;
 use std::sync::Mutex;
 use tauri_plugin_log::{Target, TargetKind};

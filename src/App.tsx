@@ -13,6 +13,10 @@ function App() {
         setGreetMsg(await invoke("greet", {name: "dai"}));
         await invoke("start_recording");
         console.log(greetMsg)
+
+        setTimeout(async () => {
+            await invoke("stop_recording");
+        }, 5000);
     }
 
     useEffect(() => {

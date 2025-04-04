@@ -17,6 +17,84 @@ impl Microphone {
             stream: None,
         }
     }
+    pub fn play(&mut self) {
+        if let Some(stream) = &self.stream {
+            match stream.play() {
+                Ok(_) => {
+                    info!(
+                        "Microphone {} stream was started.",
+                        self.get_microphone_name()
+                    );
+                }
+                Err(err) => {
+                    error!(
+                        "Microphone {} stream start error: {}",
+                        self.get_microphone_name(),
+                        err
+                    );
+                }
+            }
+        }
+    }
+    pub fn pause(&mut self) {
+        if let Some(stream) = &self.stream {
+            match stream.pause() {
+                Ok(_) => {
+                    info!(
+                        "Microphone {} stream was paused.",
+                        self.get_microphone_name()
+                    );
+                }
+                Err(err) => {
+                    error!(
+                        "Microphone {} stream pause error: {}",
+                        self.get_microphone_name(),
+                        err
+                    );
+                }
+            }
+        }
+    }
+    pub fn initialization(&mut self) -> Result<Receiver<Vec<f32>>, Box<dyn Error>> {
+        let config = self.get_microphone_config();
+        let microphone_name = self.get_microphone_name();
+        let sample_format = self.get_microphone_sample_format();
+        let (tx, rx) = mpsc::channel::<Vec<f32>>(100);
+        match sample_format {
+            SampleFormat::F32 => {
+                let stream = self.device.build_input_stream(
+                    &config.into(),
+                    move |data: &[f32], _: &cpal::InputCallbackInfo| {
+                        let mut buffer = vec![0.0; data.len()];
+                        buffer.copy_from_slice(data);
+                        tx.blocking_send(buffer).unwrap();
+                    },
+                    move |err| {
+                        error!(
+                            "Microphone {} build input stream error: {}",
+                            microphone_name.clone(),
+                            err
+                        );
+                    },
+                    None,
+                )?;
+                self.stream = Some(stream);
+            }
+            _ => {
+                error!(
+                    "Unsupported microphone {} sample format: {:?}",
+                    microphone_name.clone(),
+                    sample_format
+                );
+                panic!(
+                    "Unsupported microphone {} sample format: {:?}",
+                    microphone_name.clone(),
+                    sample_format
+                );
+            }
+        };
+        Ok(rx)
+    }
     pub fn get_microphone_name(&self) -> String {
         self.device.name().unwrap_or_else(|_| {
             error!("Failed to get Microphone name.");
@@ -64,84 +142,10 @@ impl Microphone {
             })
             .sample_format()
     }
-    pub fn initialization(&mut self) -> Result<Receiver<Vec<f32>>, Box<dyn Error>> {
-        let config = self.get_microphone_config();
-        let microphone_name = self.get_microphone_name();
-        let sample_format = self.get_microphone_sample_format();
-        let (tx, rx) = mpsc::channel::<Vec<f32>>(100);
-        match sample_format {
-            SampleFormat::F32 => {
-                let stream = self.device.build_input_stream(
-                    &config.into(),
-                    move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                        let mut buffer = vec![0.0; data.len()];
-                        buffer.copy_from_slice(data);
-                        tx.blocking_send(buffer).unwrap();
-                    },
-                    move |err| {
-                        error!(
-                            "Microphone {} build input stream error: {}",
-                            microphone_name.clone(),
-                            err
-                        );
-                    },
-                    None,
-                )?;
-                self.stream = Some(stream);
-            }
-            _ => {
-                error!(
-                    "Unsupported microphone {} sample format: {:?}",
-                    microphone_name.clone(),
-                    sample_format
-                );
-                panic!(
-                    "Unsupported microphone {} sample format: {:?}",
-                    microphone_name.clone(),
-                    sample_format
-                );
-            }
-        };
-        Ok(rx)
-    }
-
-    pub fn stop(&mut self) {
-        if let Some(stream) = &self.stream {
-            match stream.pause() {
-                Ok(_) => {
-                    info!(
-                        "Microphone {} stream was paused.",
-                        self.get_microphone_name()
-                    );
-                }
-                Err(err) => {
-                    error!(
-                        "Microphone {} stream pause error: {}",
-                        self.get_microphone_name(),
-                        err
-                    );
-                }
-            }
-        }
-    }
-
-    pub fn start(&mut self) {
-        if let Some(stream) = &self.stream {
-            match stream.play() {
-                Ok(_) => {
-                    info!(
-                        "Microphone {} stream was started.",
-                        self.get_microphone_name()
-                    );
-                }
-                Err(err) => {
-                    error!(
-                        "Microphone {} stream start error: {}",
-                        self.get_microphone_name(),
-                        err
-                    );
-                }
-            }
-        }
-    }
 }
+
+// https://github.com/RustAudio/cpal/issues/818#event-16783007976
+unsafe impl Send for Microphone {}
+
+// https://github.com/RustAudio/cpal/issues/818#event-16783007976
+unsafe impl Sync for Microphone {}

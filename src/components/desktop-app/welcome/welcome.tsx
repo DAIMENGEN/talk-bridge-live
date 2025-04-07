@@ -1,7 +1,10 @@
 import "./welcome.scss";
 import {Button, Space} from "antd";
+import {useNavigate} from "react-router-dom";
+import {getCurrentWindow} from "@tauri-apps/api/window";
 
 export const Welcome = () => {
+    const navigate = useNavigate();
     return (
         <div className={"desktop-welcome"}>
             <div className={"desktop-welcome-content"}>
@@ -14,8 +17,8 @@ export const Welcome = () => {
                         </span>
                     </h3>
                     <Space size={"large"} className={"desktop-welcome-content-button"}>
-                        <Button size={"large"}>START</Button>
-                        <Button size={"large"}>CLOSE</Button>
+                        <Button size={"large"} onClick={() => navigate("/app-home")}>START</Button>
+                        <Button size={"large"} onClick={async () => await getCurrentWindow().close()}>CLOSE</Button>
                     </Space>
                 </Space>
             </div>

@@ -2,10 +2,12 @@ use crate::device::device_manager::get_microphone_by_name;
 use crate::device::input::microphone::Microphone;
 use crate::AppState;
 use log::info;
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
+use crate::audio::transcription::TranscriptionData;
 
 #[tauri::command(rename_all = "snake_case")]
 pub async fn start_recording(
+    app: AppHandle,
     app_state: State<'_, AppState>,
     device_name: String,
 ) -> Result<bool, String> {
@@ -16,6 +18,9 @@ pub async fn start_recording(
             tokio::spawn(async move {
                 while let Some(buffer) = receiver.recv().await {
                     info!("length: {}", buffer.len());
+                    app.emit("start_recording", TranscriptionData {
+                        text: "音频已经开始转录，记录音频的转录结果".to_string(),
+                    }).unwrap();
                 }
             });
             microphone.play();

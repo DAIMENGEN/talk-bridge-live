@@ -5,7 +5,7 @@ use crate::audio::audio_recorder::{start_recording, stop_recording};
 use crate::device::input::microphone::Microphone;
 use std::sync::Mutex;
 use tauri_plugin_log::{Target, TargetKind};
-use crate::device::device_manager::list_microphone_names;
+use crate::device::device_manager::{list_speaker_names, list_microphone_names};
 
 struct AppState {
     microphone: Mutex<Option<Microphone>>,
@@ -28,6 +28,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             stop_recording,
             start_recording,
+            list_speaker_names,
             list_microphone_names,
         ])
         .run(tauri::generate_context!())

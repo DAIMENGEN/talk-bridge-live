@@ -42,4 +42,7 @@ export default defineConfig({
             "@src": "/src",
         },
     },
+    optimizeDeps: {
+        exclude: ["src-wasm"],
+    },
 });

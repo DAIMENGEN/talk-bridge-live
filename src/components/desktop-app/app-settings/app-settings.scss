@@ -1,0 +1,21 @@
+.app-settings.ant-drawer-content {
+  color: #D0D4D9;
+  background: #1d2125;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+
+  .ant-card {
+    width: 100%;
+    background-color: #2a2f34;
+
+    .ant-card-head {
+      color: #D0D4D9;
+      border-bottom: 1px solid #f0f0f024;
+    }
+
+    .ant-card-body {
+      color: #D0D4D9;
+    }
+  }
+}

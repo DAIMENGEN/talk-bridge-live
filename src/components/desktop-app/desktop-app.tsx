@@ -1,7 +1,7 @@
 import "./desktop-app.scss";
+import {useEffect, useRef} from "react";
 import {Outlet} from "react-router-dom";
 import {Toolbar} from "@src/components/desktop-app/toolbar/toolbar.tsx";
-import {useEffect, useRef} from "react";
 
 export const DesktopApp = () => {
     const toolbarWrapperRef = useRef<HTMLDivElement>(null);
@@ -26,10 +26,7 @@ export const DesktopApp = () => {
 
     return (
         <div className={"desktop-app"}>
-            <div className={"frosted-glass"}/>
-            <div className={"toolbar-wrapper"} ref={toolbarWrapperRef}>
-                <Toolbar/>
-            </div>
+            <Toolbar/>
             <Outlet/>
         </div>
     )

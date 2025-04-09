@@ -1,24 +1,17 @@
 use cpal::traits::{DeviceTrait, HostTrait};
 use std::error::Error;
 
+pub fn list_speakers() -> Result<Vec<cpal::Device>, Box<dyn Error>> {
+    let host = cpal::default_host();
+    let output_devices = host.output_devices()?;
+    let devices: Vec<cpal::Device> = output_devices.collect();
+    Ok(devices)
+}
 pub fn list_microphones() -> Result<Vec<cpal::Device>, Box<dyn Error>> {
     let host = cpal::default_host();
     let input_devices = host.input_devices()?;
     let devices: Vec<cpal::Device> = input_devices.collect();
     Ok(devices)
-}
-#[tauri::command]
-pub async fn list_microphone_names() -> Result<Vec<String>, String> {
-    match list_microphones() {
-        Ok(devices) => {
-            let device_names = devices
-                .iter()
-                .filter_map(|device| device.name().ok())
-                .collect::<Vec<String>>();
-            Ok(device_names)
-        }
-        Err(err) => Err(format!("Failed to list microphone names: {}", err)),
-    }
 }
 pub async fn get_microphone_by_name(device_name: &str) -> Result<cpal::Device, Box<dyn Error>> {
     match list_microphones() {
@@ -33,3 +26,31 @@ pub async fn get_microphone_by_name(device_name: &str) -> Result<cpal::Device, B
         Err(err) => Err(err),
     }
 }
+#[tauri::command]
+pub async fn list_microphone_names() -> Result<Vec<String>, String> {
+    match list_microphones() {
+        Ok(devices) => {
+            let device_names = devices
+                .iter()
+                .filter_map(|device| device.name().ok())
+                .collect::<Vec<String>>();
+            Ok(device_names)
+        }
+        Err(err) => Err(format!("Failed to list microphone names: {}", err)),
+    }
+}
+#[tauri::command]
+pub async fn list_speaker_names() -> Result<Vec<String>, String> {
+    match list_speakers() {
+        Ok(devices) => {
+            let device_names = devices
+                .iter()
+                .filter_map(|device| device.name().ok())
+                .collect::<Vec<String>>();
+            Ok(device_names)
+        }
+        Err(err) => Err(format!("Failed to list speaker names: {}", err)),
+    }
+}
+
+

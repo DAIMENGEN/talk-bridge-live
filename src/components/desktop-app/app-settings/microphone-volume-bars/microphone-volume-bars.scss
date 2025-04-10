@@ -1,0 +1,18 @@
+.microphone-volume-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+  height: 40px;
+
+  .mic-bar.active {
+    background-color: #22c55e;
+  }
+
+  .mic-bar {
+    flex: 1;
+    height: 40px;
+    background-color: #D0D4D9;
+    transition: background-color 0.2s;
+  }
+}

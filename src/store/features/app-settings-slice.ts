@@ -3,6 +3,8 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 export type AppSettingsStore = {
     isOpenSettings: boolean;
     isShowSettingsButton: boolean;
+    speakerVolume: number;
+    microphoneGain: number;
     selectedSpeakerName?: string;
     selectedMicrophoneName?: string;
 }
@@ -10,6 +12,8 @@ export type AppSettingsStore = {
 const initialState: AppSettingsStore = {
     isOpenSettings: false,
     isShowSettingsButton: false,
+    speakerVolume: 1,
+    microphoneGain: 1,
     selectedSpeakerName: undefined,
     selectedMicrophoneName: undefined
 }
@@ -24,6 +28,12 @@ const appSettingsSlice = createSlice({
         setIsShowSettingsButton: (state, action: PayloadAction<boolean>) => {
             state.isShowSettingsButton = action.payload;
         },
+        setSpeakerVolume: (state, action: PayloadAction<number>) => {
+            state.speakerVolume = action.payload;
+        },
+        setMicrophoneGain: (state, action: PayloadAction<number>) => {
+            state.microphoneGain = action.payload;
+        },
         setSelectedSpeakerName: (state, action: PayloadAction<string | undefined>) => {
             state.selectedSpeakerName = action.payload;
         },
@@ -36,6 +46,8 @@ const appSettingsSlice = createSlice({
 export const {
     setIsOpenSettings,
     setIsShowSettingsButton,
+    setSpeakerVolume,
+    setMicrophoneGain,
     setSelectedSpeakerName,
     setSelectedMicrophoneName
 } = appSettingsSlice.actions;

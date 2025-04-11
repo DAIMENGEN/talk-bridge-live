@@ -1,5 +1,6 @@
 pub mod device;
 mod audio;
+mod silero_vad;
 
 use crate::audio::audio_recorder::{start_recording, stop_recording};
 use crate::device::input::microphone::Microphone;

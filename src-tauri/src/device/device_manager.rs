@@ -1,5 +1,5 @@
-use crate::audio::nodes::gain_node::GainNode;
-use crate::audio::nodes::vad_node::VadNode;
+use crate::audio::audio_context::AudioContext;
+use crate::audio::node::AudioNode;
 use crate::device::input::microphone::Microphone;
 use crate::{log_error, log_info, AppState};
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -46,36 +46,34 @@ pub async fn human_voice_detection(
 ) -> Result<String, String> {
     match get_microphone_by_name(&device_name).await {
         Ok(device) => {
-            const EVENT_NAME: &str = "human_voice_detection_event";
-            let mut microphone = Microphone::new(device);
-            let mut receiver = microphone.init().unwrap();
+            const EVENT_NAME: &str = "human_voice_detection_result_event";
+            let microphone = Microphone::new(device);
+            let mut audio_context = AudioContext::new(microphone);
+            let receiver = audio_context.init().unwrap();
+            let mut source_node = audio_context.create_source_node();
+            let mut gain_node = audio_context.create_gain_node();
+            let mut vad_node = audio_context.create_vad_node();
+            let receiver = source_node.connect_input_source(receiver);
+            let receiver = gain_node.connect_input_source(receiver);
+            let mut receiver = vad_node.connect_input_source(receiver);
             let microphone_gain = app_state.microphone_gain.clone();
-            let target_sample_rate = microphone.get_target_sample_rate() as u32;
-            let output_frames_size = microphone.get_output_frames_size() as usize;
+            gain_node.set_gain(microphone_gain);
             tokio::spawn(async move {
-                let mut gain_node = GainNode::new(1.0);
-                let mut vad_node = VadNode::new(target_sample_rate, output_frames_size);
-                while let Some(samples) = receiver.recv().await {
-                    match microphone_gain.lock() {
-                        Ok(gain) => {
-                            if *gain != gain_node.get_gain() {
-                                gain_node.set_gain(*gain);
-                            }
-                        },
-                        Err(err) => {
-                            log_error!("Failed to lock microphone gain: {}", err);
-                        }
-                    };
-                    let samples = gain_node.process(&samples);
-                    let probability = vad_node.predict(&samples);
+                while let Some(vad_audio_frame) = receiver.recv().await {
+                    let probability = vad_audio_frame.get_probability();
+                    let samples = vad_audio_frame.get_samples();
+                    log_info!("Probability: {}, Samples: {}", probability, samples.len());
                     if let Err(err) = app.emit(EVENT_NAME, HumanVoiceProbability { probability }) {
                         log_error!("Failed to send the detected human voice probability to the frontend: {}", err);
                     }
                 }
             });
-            microphone.play();
-            let mut microphone_lock = app_state.test_microphone.lock().unwrap();
-            microphone_lock.replace(microphone);
+            audio_context.connect_source_node(source_node);
+            audio_context.connect_gain_node(gain_node);
+            audio_context.connect_vad_node(vad_node);
+            audio_context.start();
+            let mut audio_context_lock = app_state.audio_context.lock().unwrap();
+            audio_context_lock.replace(audio_context);
             Ok(EVENT_NAME.parse().unwrap())
         }
         Err(err) => Err(format!(
@@ -86,12 +84,12 @@ pub async fn human_voice_detection(
 }
 #[tauri::command]
 pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Result<bool, String> {
-    let mut microphone_lock = app_state
-        .test_microphone
+    let mut audio_context_lock = app_state
+        .audio_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
-    if let Some(mut microphone) = microphone_lock.take() {
-        microphone.pause();
+    if let Some(mut audio_context) = audio_context_lock.take() {
+        audio_context.close();
     }
     Ok(true)
 }

@@ -1,11 +1,12 @@
+use crate::audio::nodes::gain_node::GainNode;
 use crate::audio::nodes::vad_node::VadNode;
 use crate::device::input::microphone::Microphone;
 use crate::AppState;
 use cpal::traits::{DeviceTrait, HostTrait};
+use log::{error, info};
 use serde::Serialize;
 use std::error::Error;
 use tauri::{AppHandle, Emitter, State};
-use crate::audio::nodes::gain_node::GainNode;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,18 +50,28 @@ pub async fn human_voice_detection(
             const EVENT_NAME: &str = "human_voice_detection_event";
             let mut microphone = Microphone::new(device);
             let mut receiver = microphone.init().unwrap();
-            // let speech_threshold = 0.75f32;
+            let microphone_gain = app_state.microphone_gain.clone();
             let target_sample_rate = microphone.get_target_sample_rate() as u32;
             let output_frames_size = microphone.get_output_frames_size() as usize;
             tokio::spawn(async move {
-                let gain_node = GainNode::new(1.0);
+                let mut gain_node = GainNode::new(1.0);
                 let mut vad_node = VadNode::new(target_sample_rate, output_frames_size);
                 while let Some(samples) = receiver.recv().await {
+                    match microphone_gain.lock() {
+                        Ok(gain) => {
+                            if *gain != gain_node.get_gain() {
+                                gain_node.set_gain(*gain);
+                            }
+                        },
+                        Err(err) => {
+                            error!("Failed to lock microphone gain: {}", err);
+                        }
+                    };
                     let samples = gain_node.process(&samples);
                     let probability = vad_node.predict(&samples);
-                    app.emit(EVENT_NAME, HumanVoiceProbability {
-                        probability,
-                    }).unwrap();
+                    if let Err(err) = app.emit(EVENT_NAME, HumanVoiceProbability { probability }) {
+                        error!("Failed to send the detected human voice probability to the frontend: {}", err);
+                    }
                 }
             });
             microphone.play();
@@ -74,7 +85,6 @@ pub async fn human_voice_detection(
         )),
     }
 }
-
 #[tauri::command]
 pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Result<bool, String> {
     let mut microphone_lock = app_state
@@ -86,7 +96,6 @@ pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Resul
     }
     Ok(true)
 }
-
 #[tauri::command]
 pub async fn list_microphone_names() -> Result<Vec<String>, String> {
     match list_microphones() {
@@ -113,5 +122,15 @@ pub async fn list_speaker_names() -> Result<Vec<String>, String> {
         Err(err) => Err(format!("Failed to list speaker names: {}", err)),
     }
 }
-
-
+#[tauri::command(rename_all = "snake_case")]
+pub async fn set_microphone_gain(
+    app_state: State<'_, AppState>,
+    microphone_gain: f32,
+) -> Result<bool, String> {
+    let mut microphone_gain_lock = app_state
+        .microphone_gain
+        .lock()
+        .map_err(|err| format!("Failed to lock microphone gain: {}", err))?;
+    *microphone_gain_lock = microphone_gain;
+    Ok(true)
+}

@@ -4,19 +4,20 @@ mod silero_vad;
 
 use crate::audio::recorder::{start_recording, stop_recording};
 use crate::device::input::microphone::Microphone;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri_plugin_log::{Target, TargetKind};
-use crate::device::device_manager::{list_speaker_names, list_microphone_names, human_voice_detection, stop_human_voice_detection};
+use crate::device::device_manager::{list_speaker_names, list_microphone_names, human_voice_detection, stop_human_voice_detection, set_microphone_gain};
 
 pub struct AppState {
     microphone: Mutex<Option<Microphone>>,
+    microphone_gain: Arc<Mutex<f32>>,
     test_microphone: Mutex<Option<Microphone>>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .manage(AppState { microphone: None.into(), test_microphone: None.into() })
+        .manage(AppState { microphone: None.into(), microphone_gain: Arc::new(Mutex::new(1.0)), test_microphone: None.into() })
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -31,6 +32,7 @@ pub fn run() {
             stop_recording,
             start_recording,
             list_speaker_names,
+            set_microphone_gain,
             list_microphone_names,
             human_voice_detection,
             stop_human_voice_detection,

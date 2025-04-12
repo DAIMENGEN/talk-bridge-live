@@ -10,11 +10,11 @@ import {
     MicrophoneGainControl
 } from "@src/components/desktop-app/app-settings/microphone-gain-control/microphone-gain-control.tsx";
 import {
-    SpeakerVolumeControl
-} from "@src/components/desktop-app/app-settings/speaker-volume-control/speaker-volume-control.tsx";
+    SpeakerHumanVoiceDetection
+} from "@src/components/desktop-app/app-settings/speaker-human-voice-detection/speaker-human-voice-detection.tsx";
 import {
-    HumanVoiceDetection
-} from "@src/components/desktop-app/app-settings/human-voice-detection/human-voice-detection.tsx";
+    MicrophoneHumanVoiceDetection
+} from "@src/components/desktop-app/app-settings/microphone-human-voice-detection/microphone-human-voice-detection.tsx";
 
 export const AppSettings = () => {
     const appDispatch = useAppDispatch();
@@ -31,12 +31,12 @@ export const AppSettings = () => {
                 <Card title="Microphone Settings" variant="borderless" hoverable>
                     <LabelBlock label="Select Microphone" content={<MicrophoneSelect/>}/>
                     <LabelBlock label="Gain Control" content={<MicrophoneGainControl/>}/>
-                    <LabelBlock label="Human Voice Detection" content={<HumanVoiceDetection/>}/>
+                    <LabelBlock label="Human Voice Detection" content={<MicrophoneHumanVoiceDetection/>}/>
                 </Card>
 
                 <Card title="Speaker Settings" variant="borderless" hoverable>
                     <LabelBlock label="Select Speaker" content={<SpeakerSelect/>}/>
-                    <LabelBlock label="Speaker Volume Control" content={<SpeakerVolumeControl/>}/>
+                    <LabelBlock label="Speaker Volume Control" content={<SpeakerHumanVoiceDetection/>}/>
                 </Card>
             </Space>
         </Drawer>

@@ -1,4 +1,4 @@
-import "./human-voice-detection.scss";
+import "./microphone-human-voice-detection.scss";
 import {log} from "@src/logging.ts";
 import {useEffect, useState} from "react";
 import {useAppSelector} from "@src/store/store.ts";
@@ -10,7 +10,7 @@ interface HumanVoiceProbability {
     probability: number;
 }
 
-export const HumanVoiceDetection = () => {
+export const MicrophoneHumanVoiceDetection = () => {
     const [probability, setProbability] = useState<number>(0);
     const microphoneName = useAppSelector((state) => state.appSettings.selectedMicrophoneName);
 

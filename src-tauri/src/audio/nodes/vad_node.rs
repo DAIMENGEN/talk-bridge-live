@@ -1,4 +1,5 @@
 use voice_activity_detector::VoiceActivityDetector;
+use crate::log_error;
 
 // https://github.com/nkeenan38/voice_activity_detector
 pub type Vad = VoiceActivityDetector;
@@ -16,7 +17,10 @@ impl VadNode {
             .build()
         {
             Ok(a) => a,
-            Err(e) => panic!("VoiceActivityDetector build failed: {}", e),
+            Err(e) => {
+                log_error!("VoiceActivityDetector build failed: {}", e);
+                panic!("VoiceActivityDetector build failed: {}", e)
+            },
         };
         VadNode {
             vad,

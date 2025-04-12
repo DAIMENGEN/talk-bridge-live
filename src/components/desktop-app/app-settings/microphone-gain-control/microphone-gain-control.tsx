@@ -3,7 +3,7 @@ import "./microphone-gain-control.scss";
 import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {setMicrophoneGain} from "@src/store/features/app-settings-slice.ts";
 import {TauriDeviceService} from "@src/tauri-services/tauri-device-service.ts";
-import {log} from "@src/logging.ts";
+import {log} from "@src/logger.ts";
 
 export const MicrophoneGainControl = () => {
     const appDispatch = useAppDispatch();

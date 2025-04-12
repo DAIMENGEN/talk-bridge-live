@@ -1,7 +1,6 @@
 use crate::device::device_manager::get_microphone_by_name;
 use crate::device::input::microphone::Microphone;
-use crate::AppState;
-use log::info;
+use crate::{log_info, AppState};
 use tauri::{AppHandle, Emitter, State};
 use crate::audio::transcription::TranscriptionData;
 
@@ -17,7 +16,7 @@ pub async fn start_recording(
             let mut receiver = microphone.init().unwrap();
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
-                    info!("Samples length: {}", samples.len());
+                    log_info!("Samples length: {}", samples.len());
                     app.emit("start_recording", TranscriptionData {
                         text: "音频已经开始转录，记录音频的转录结果".to_string(),
                     }).unwrap();

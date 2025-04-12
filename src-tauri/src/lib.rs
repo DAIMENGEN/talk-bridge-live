@@ -1,11 +1,13 @@
-pub mod device;
+mod device;
 mod audio;
 mod silero_vad;
+mod logger;
 
+use std::path::PathBuf;
 use crate::audio::recorder::{start_recording, stop_recording};
 use crate::device::input::microphone::Microphone;
 use std::sync::{Arc, Mutex};
-use tauri_plugin_log::{Target, TargetKind};
+use tauri_plugin_log::{RotationStrategy, Target, TargetKind, TimezoneStrategy};
 use crate::device::device_manager::{list_speaker_names, list_microphone_names, human_voice_detection, stop_human_voice_detection, set_microphone_gain};
 
 pub struct AppState {
@@ -23,9 +25,16 @@ pub fn run() {
             tauri_plugin_log::Builder::new()
                 .targets([
                     Target::new(TargetKind::Stdout),
-                    Target::new(TargetKind::LogDir { file_name: None }),
+                    Target::new(TargetKind::Folder {
+                        path: PathBuf::from("logs"),
+                        file_name: None,
+
+                    }),
                     Target::new(TargetKind::Webview),
                 ])
+                .max_file_size(524_288_000)// Limit the size of each log file to 500MB.
+                .rotation_strategy(RotationStrategy::KeepAll)// Tauri can automatically rotate your log file when it reaches the size limit instead of discarding the previous file.
+                .timezone_strategy(TimezoneStrategy::UseLocal)// Set the time zone strategy to use the local time zone.
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![

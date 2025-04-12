@@ -1,11 +1,11 @@
+use crate::silero_vad::{VadSampleRate, VadSampleSize};
+use crate::{log_error, log_info};
 use cpal::traits::{DeviceTrait, StreamTrait};
 use cpal::{BufferSize, Device, SampleFormat, StreamConfig};
-use log::{error, info};
 use rubato::{FftFixedInOut, Resampler};
 use std::error::Error;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::Receiver;
-use crate::silero_vad::{VadSampleSize, VadSampleRate};
 
 pub struct Microphone {
     pub device: Device,
@@ -43,7 +43,7 @@ impl Microphone {
         ) {
             Ok(resampler) => resampler,
             Err(err) => {
-                error!("Failed to create resampler: {}", err);
+                log_error!("Failed to create resampler: {}", err);
                 panic!("Failed to create resampler: {}", err);
             }
         };
@@ -83,19 +83,19 @@ impl Microphone {
                                             input_buffer.clear();
                                         }
                                         Err(err) => {
-                                            error!("Microphone send samples error: {}", err);
+                                            log_error!("Microphone send samples error: {}", err);
                                         }
                                     }
                                 }
                                 Err(err) => {
-                                    error!("Resampling error: {}", err);
+                                    log_error!("Resampling error: {}", err);
                                     panic!("Resampling error: {}", err);
                                 }
                             }
                         }
                     },
                     move |err| {
-                        error!(
+                        log_error!(
                             "Microphone {} build input stream error: {}",
                             microphone_name.clone(),
                             err
@@ -106,7 +106,7 @@ impl Microphone {
                 self.stream = Some(stream);
             }
             _ => {
-                error!(
+                log_error!(
                     "Unsupported microphone {} sample format: {:?}",
                     microphone_name.clone(),
                     sample_format
@@ -124,13 +124,13 @@ impl Microphone {
         if let Some(stream) = &self.stream {
             match stream.play() {
                 Ok(_) => {
-                    info!(
+                    log_info!(
                         "Microphone {} stream was started.",
                         self.get_name()
                     );
                 }
                 Err(err) => {
-                    error!(
+                    log_error!(
                         "Microphone {} stream start error: {}",
                         self.get_name(),
                         err
@@ -143,13 +143,13 @@ impl Microphone {
         if let Some(stream) = &self.stream {
             match stream.pause() {
                 Ok(_) => {
-                    info!(
+                    log_info!(
                         "Microphone {} stream was paused.",
                         self.get_name()
                     );
                 }
                 Err(err) => {
-                    error!(
+                    log_error!(
                         "Microphone {} stream pause error: {}",
                         self.get_name(),
                         err
@@ -161,7 +161,7 @@ impl Microphone {
 
     pub fn get_name(&self) -> String {
         self.device.name().unwrap_or_else(|_| {
-            error!("Failed to get Microphone name.");
+            log_error!("Failed to get Microphone name.");
             panic!("Failed to get Microphone name.");
         })
     }
@@ -173,7 +173,7 @@ impl Microphone {
                 buffer_size: BufferSize::Fixed(512u32),
             },
             Err(_) => {
-                error!("Failed to get Microphone config.");
+                log_error!("Failed to get Microphone config.");
                 panic!("Failed to get Microphone config.");
             }
         }
@@ -188,7 +188,7 @@ impl Microphone {
         self.device
             .default_input_config()
             .unwrap_or_else(|_| {
-                error!("Failed to get Microphone channels.");
+                log_error!("Failed to get Microphone channels.");
                 panic!("Failed to get Microphone channels.");
             })
             .channels()
@@ -197,7 +197,7 @@ impl Microphone {
         self.device
             .default_input_config()
             .unwrap_or_else(|_| {
-                error!("Failed to get Microphone sample rate.");
+                log_error!("Failed to get Microphone sample rate.");
                 panic!("Failed to get Microphone sample rate.");
             })
             .sample_rate()
@@ -207,7 +207,7 @@ impl Microphone {
         self.device
             .default_input_config()
             .unwrap_or_else(|_| {
-                error!("Failed to get Microphone sample format.");
+                log_error!("Failed to get Microphone sample format.");
                 panic!("Failed to get Microphone sample format.");
             })
             .sample_format()

@@ -1,5 +1,5 @@
 import "./microphone-human-voice-detection.scss";
-import {log} from "@src/logging.ts";
+import {log} from "@src/logger.ts";
 import {useEffect, useState} from "react";
 import {useAppSelector} from "@src/store/store.ts";
 import {TauriDeviceService} from "@src/tauri-services/tauri-device-service.ts";

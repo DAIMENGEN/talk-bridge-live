@@ -6,7 +6,7 @@ use crate::audio::recorder::{start_recording, stop_recording};
 use crate::device::input::microphone::Microphone;
 use std::sync::Mutex;
 use tauri_plugin_log::{Target, TargetKind};
-use crate::device::device_manager::{list_speaker_names, list_microphone_names, start_microphone_test, stop_microphone_test};
+use crate::device::device_manager::{list_speaker_names, list_microphone_names, human_voice_detection, stop_human_voice_detection};
 
 pub struct AppState {
     microphone: Mutex<Option<Microphone>>,
@@ -32,8 +32,8 @@ pub fn run() {
             start_recording,
             list_speaker_names,
             list_microphone_names,
-            start_microphone_test,
-            stop_microphone_test,
+            human_voice_detection,
+            stop_human_voice_detection,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

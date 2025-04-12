@@ -1,16 +1,15 @@
 use voice_activity_detector::VoiceActivityDetector;
 
+// https://github.com/nkeenan38/voice_activity_detector
 pub type Vad = VoiceActivityDetector;
 
 pub struct VadNode {
     vad: Vad,
     chunk_size: usize,
-    sample_rate: u32,
-    speech_threshold: f32,
 }
 
 impl VadNode {
-    pub fn new(sample_rate: u32, chunk_size: usize, speech_threshold: f32) -> Self {
+    pub fn new(sample_rate: u32, chunk_size: usize) -> Self {
         let vad = match VoiceActivityDetector::builder()
             .sample_rate(sample_rate)
             .chunk_size(chunk_size)
@@ -21,9 +20,7 @@ impl VadNode {
         };
         VadNode {
             vad,
-            chunk_size,
-            sample_rate,
-            speech_threshold,
+            chunk_size
         }
     }
 

@@ -1,16 +1,16 @@
+use crate::audio::nodes::vad_node::VadNode;
 use crate::device::input::microphone::Microphone;
 use crate::AppState;
 use cpal::traits::{DeviceTrait, HostTrait};
 use serde::Serialize;
 use std::error::Error;
-use log::info;
 use tauri::{AppHandle, Emitter, State};
-use crate::audio::nodes::vad_node::VadNode;
+use crate::audio::nodes::gain_node::GainNode;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct VolumeLevel {
-    pub value: f32,
+pub struct HumanVoiceProbability {
+    pub probability: f32,
 }
 
 pub fn list_speakers() -> Result<Vec<cpal::Device>, Box<dyn Error>> {
@@ -39,34 +39,34 @@ pub async fn get_microphone_by_name(device_name: &str) -> Result<cpal::Device, B
     }
 }
 #[tauri::command(rename_all = "snake_case")]
-pub async fn start_microphone_test(
+pub async fn human_voice_detection(
     app: AppHandle,
     app_state: State<'_, AppState>,
     device_name: String,
-) -> Result<bool, String> {
+) -> Result<String, String> {
     match get_microphone_by_name(&device_name).await {
         Ok(device) => {
+            const EVENT_NAME: &str = "human_voice_detection_event";
             let mut microphone = Microphone::new(device);
             let mut receiver = microphone.init().unwrap();
-            let speech_threshold = 0.75f32;
+            // let speech_threshold = 0.75f32;
             let target_sample_rate = microphone.get_target_sample_rate() as u32;
             let output_frames_size = microphone.get_output_frames_size() as usize;
             tokio::spawn(async move {
-                let mut vad_node = VadNode::new(target_sample_rate, output_frames_size, speech_threshold);
+                let gain_node = GainNode::new(1.0);
+                let mut vad_node = VadNode::new(target_sample_rate, output_frames_size);
                 while let Some(samples) = receiver.recv().await {
+                    let samples = gain_node.process(&samples);
                     let probability = vad_node.predict(&samples);
-                    if probability > 0.5 {
-                        info!("probability: {}", probability);
-                    }
-                    app.emit("microphone_realtime_volume", VolumeLevel {
-                        value: probability * 100.0,
+                    app.emit(EVENT_NAME, HumanVoiceProbability {
+                        probability,
                     }).unwrap();
                 }
             });
             microphone.play();
             let mut microphone_lock = app_state.test_microphone.lock().unwrap();
             microphone_lock.replace(microphone);
-            Ok(true)
+            Ok(EVENT_NAME.parse().unwrap())
         }
         Err(err) => Err(format!(
             "Microphone {} not found, error: {}",
@@ -76,7 +76,7 @@ pub async fn start_microphone_test(
 }
 
 #[tauri::command]
-pub async fn stop_microphone_test(app_state: State<'_, AppState>) -> Result<bool, String> {
+pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Result<bool, String> {
     let mut microphone_lock = app_state
         .test_microphone
         .lock()

@@ -13,8 +13,8 @@ import {
     SpeakerVolumeControl
 } from "@src/components/desktop-app/app-settings/speaker-volume-control/speaker-volume-control.tsx";
 import {
-    MicrophoneVolumeBars
-} from "@src/components/desktop-app/app-settings/microphone-volume-bars/microphone-volume-bars.tsx";
+    HumanVoiceDetection
+} from "@src/components/desktop-app/app-settings/human-voice-detection/human-voice-detection.tsx";
 
 export const AppSettings = () => {
     const appDispatch = useAppDispatch();
@@ -24,13 +24,14 @@ export const AppSettings = () => {
                 open={isOpenSettings}
                 className={"app-settings"}
                 width={"80%"}
+                destroyOnClose={true}
                 closeIcon={<CloseOutlined style={{fontSize: 20, color: "#D0D4D9"}}/>}
                 onClose={() => appDispatch(setIsOpenSettings(false))}>
             <Space direction="vertical" size="middle" style={{display: 'flex'}}>
                 <Card title="Microphone Settings" variant="borderless" hoverable>
                     <LabelBlock label="Select Microphone" content={<MicrophoneSelect/>}/>
-                    <LabelBlock label="Microphone Volume Bars" content={<MicrophoneVolumeBars/>}/>
-                    <LabelBlock label="Microphone Gain Control" content={<MicrophoneGainControl/>}/>
+                    <LabelBlock label="Gain Control" content={<MicrophoneGainControl/>}/>
+                    <LabelBlock label="Human Voice Detection" content={<HumanVoiceDetection/>}/>
                 </Card>
 
                 <Card title="Speaker Settings" variant="borderless" hoverable>

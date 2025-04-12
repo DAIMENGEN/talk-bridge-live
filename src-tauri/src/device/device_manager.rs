@@ -1,9 +1,8 @@
 use crate::audio::nodes::gain_node::GainNode;
 use crate::audio::nodes::vad_node::VadNode;
 use crate::device::input::microphone::Microphone;
-use crate::{log_info, AppState};
+use crate::{log_error, log_info, AppState};
 use cpal::traits::{DeviceTrait, HostTrait};
-use log::error;
 use serde::Serialize;
 use std::error::Error;
 use tauri::{AppHandle, Emitter, State};
@@ -62,16 +61,15 @@ pub async fn human_voice_detection(
                             if *gain != gain_node.get_gain() {
                                 gain_node.set_gain(*gain);
                             }
-                            log_info!("Gain changed to {}", gain_node.get_gain());
                         },
                         Err(err) => {
-                            error!("Failed to lock microphone gain: {}", err);
+                            log_error!("Failed to lock microphone gain: {}", err);
                         }
                     };
                     let samples = gain_node.process(&samples);
                     let probability = vad_node.predict(&samples);
                     if let Err(err) = app.emit(EVENT_NAME, HumanVoiceProbability { probability }) {
-                        error!("Failed to send the detected human voice probability to the frontend: {}", err);
+                        log_error!("Failed to send the detected human voice probability to the frontend: {}", err);
                     }
                 }
             });

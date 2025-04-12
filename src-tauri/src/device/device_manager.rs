@@ -3,8 +3,9 @@ use crate::AppState;
 use cpal::traits::{DeviceTrait, HostTrait};
 use serde::Serialize;
 use std::error::Error;
+use log::info;
 use tauri::{AppHandle, Emitter, State};
-
+use crate::audio::nodes::vad_node::VadNode;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -47,13 +48,18 @@ pub async fn start_microphone_test(
         Ok(device) => {
             let mut microphone = Microphone::new(device);
             let mut receiver = microphone.init().unwrap();
+            let speech_threshold = 0.75f32;
+            let target_sample_rate = microphone.get_target_sample_rate() as u32;
+            let output_frames_size = microphone.get_output_frames_size() as usize;
             tokio::spawn(async move {
+                let mut vad_node = VadNode::new(target_sample_rate, output_frames_size, speech_threshold);
                 while let Some(samples) = receiver.recv().await {
-                    let sum_of_squares: f32 = samples.iter().map(|&s| s * s).sum();
-                    let rms = (sum_of_squares / samples.len() as f32).sqrt();
-                    let volume = (rms * 100.0).min(100.0);
+                    let probability = vad_node.predict(&samples);
+                    if probability > 0.5 {
+                        info!("probability: {}", probability);
+                    }
                     app.emit("microphone_realtime_volume", VolumeLevel {
-                        value: volume,
+                        value: probability * 100.0,
                     }).unwrap();
                 }
             });

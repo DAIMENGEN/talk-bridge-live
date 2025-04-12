@@ -1,2 +1,3 @@
-pub mod audio_recorder;
+pub mod recorder;
 pub mod transcription;
+pub mod nodes;

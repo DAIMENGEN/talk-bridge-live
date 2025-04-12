@@ -16,8 +16,8 @@ pub async fn start_recording(
             let mut microphone = Microphone::new(device);
             let mut receiver = microphone.init().unwrap();
             tokio::spawn(async move {
-                while let Some(buffer) = receiver.recv().await {
-                    info!("length: {}", buffer.len());
+                while let Some(samples) = receiver.recv().await {
+                    info!("Samples length: {}", samples.len());
                     app.emit("start_recording", TranscriptionData {
                         text: "音频已经开始转录，记录音频的转录结果".to_string(),
                     }).unwrap();
@@ -41,6 +41,8 @@ pub async fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, Stri
         .microphone
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
+    // Here, the take method takes ownership of the microphone, and AppState loses ownership.
+    // TODO Consider whether to optimize this in the future.
     if let Some(mut microphone) = microphone_lock.take() {
         microphone.pause();
     }

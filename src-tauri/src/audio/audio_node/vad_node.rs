@@ -1,4 +1,4 @@
-use crate::audio::node::AudioNode;
+use crate::audio::audio_node::AudioNode;
 use crate::audio::AudioFrame;
 use crate::log_error;
 use tokio::sync::mpsc;
@@ -48,7 +48,7 @@ impl VadNode {
     }
 }
 
-impl AudioNode<VadAudioFrame> for VadNode {
+impl AudioNode<AudioFrame, VadAudioFrame> for VadNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<AudioFrame>,

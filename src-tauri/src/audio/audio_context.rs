@@ -1,25 +1,21 @@
-use crate::audio::node::gain_node::GainNode;
-use crate::audio::node::source_node::SourceNode;
-use crate::audio::node::vad_node::VadNode;
-use crate::audio::node::AudioNode;
+use crate::audio::audio_node::gain_node::GainNode;
+use crate::audio::audio_node::source_node::SourceNode;
+use crate::audio::audio_node::vad_node::VadNode;
+use crate::audio::audio_node::AudioNodeEnum;
 use crate::device::input::microphone::Microphone;
 use std::error::Error;
 use tokio::sync::mpsc::Receiver;
 
 pub struct AudioContext {
     microphone: Microphone,
-    vad_node: Option<VadNode>,
-    gain_node: Option<GainNode>,
-    source_node: Option<SourceNode>,
+    audio_nodes: Vec<AudioNodeEnum>,
 }
 
 impl AudioContext {
     pub fn new(microphone: Microphone) -> Self {
         AudioContext {
             microphone,
-            vad_node: None,
-            gain_node: None,
-            source_node: None,
+            audio_nodes: vec![],
         }
     }
 
@@ -30,14 +26,8 @@ impl AudioContext {
 
     pub fn start(&mut self) {
         self.microphone.play();
-        if let Some(source_node) = self.source_node.as_mut() {
-            source_node.process();
-        }
-        if let Some(gain_node) = self.gain_node.as_mut() {
-            gain_node.process();
-        }
-        if let Some(vad_node) = self.vad_node.as_mut() {
-            vad_node.process();
+        for audio_node in self.audio_nodes.iter_mut() {
+            audio_node.process();
         }
     }
 
@@ -45,16 +35,20 @@ impl AudioContext {
         self.microphone.pause();
     }
 
-    pub fn connect_source_node(&mut self, audio_node: SourceNode) {
-        self.source_node = Some(audio_node);
+    pub fn connect_audio_node(&mut self, audio_node: AudioNodeEnum) {
+        self.audio_nodes.push(audio_node);
     }
 
-    pub fn connect_vad_node(&mut self, audio_node: VadNode) {
-        self.vad_node = Some(audio_node);
+    pub fn connect_source_node(&mut self, audio_node: SourceNode) {
+        self.connect_audio_node(AudioNodeEnum::SourceNode(Box::new(audio_node)))
     }
 
     pub fn connect_gain_node(&mut self, audio_node: GainNode) {
-        self.gain_node = Some(audio_node);
+        self.connect_audio_node(AudioNodeEnum::GainNode(Box::new(audio_node)))
+    }
+
+    pub fn connect_vad_node(&mut self, audio_node: VadNode) {
+        self.connect_audio_node(AudioNodeEnum::VadNode(Box::new(audio_node)))
     }
 
     pub fn create_source_node(&self) -> SourceNode {

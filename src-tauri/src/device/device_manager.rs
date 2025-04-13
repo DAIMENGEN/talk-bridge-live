@@ -1,5 +1,5 @@
 use crate::audio::audio_context::AudioContext;
-use crate::audio::node::AudioNode;
+use crate::audio::audio_node::AudioNode;
 use crate::device::input::microphone::Microphone;
 use crate::{log_error, log_info, AppState};
 use cpal::traits::{DeviceTrait, HostTrait};

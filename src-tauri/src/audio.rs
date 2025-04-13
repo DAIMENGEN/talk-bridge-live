@@ -1,5 +1,5 @@
 pub mod audio_context;
-pub mod node;
+pub mod audio_node;
 pub mod recorder;
 pub mod transcription;
 

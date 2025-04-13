@@ -2,7 +2,7 @@ import {invoke} from "@tauri-apps/api/core";
 
 export class TauriAudioRecorderService {
 
-    static startRecording(deviceName: string): Promise<boolean> {
+    static startRecording(deviceName: string): Promise<string> {
         return invoke("start_recording", { device_name: deviceName })
     }
 

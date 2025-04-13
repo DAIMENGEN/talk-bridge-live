@@ -2,6 +2,16 @@ use serde::Serialize;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TranscriptionData {
-    pub(crate) text: String,
+pub struct TranscriptData {
+    datetime: String,
+    transcript: String,
+}
+
+impl TranscriptData {
+    pub fn new(datetime: String, transcript: String) -> Self {
+        Self {
+            datetime,
+            transcript,
+        }
+    }
 }

@@ -1,5 +1,8 @@
 .app-home {
-
-
+  width: 100%;
+  height: calc(100vh - 30px);
+  overflow: auto;
+  scrollbar-width: none;
+  padding-bottom: 10px; // 后期删除
 }
 

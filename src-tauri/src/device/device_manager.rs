@@ -1,7 +1,7 @@
 use crate::audio::audio_context::AudioContext;
 use crate::audio::audio_node::AudioNode;
 use crate::device::input::microphone::Microphone;
-use crate::{log_error, log_info, AppState};
+use crate::{log_error, AppState};
 use cpal::traits::{DeviceTrait, HostTrait};
 use serde::Serialize;
 use std::error::Error;
@@ -61,8 +61,7 @@ pub async fn human_voice_detection(
             tokio::spawn(async move {
                 while let Some(vad_audio_frame) = receiver.recv().await {
                     let probability = vad_audio_frame.get_probability();
-                    let samples = vad_audio_frame.get_samples();
-                    log_info!("Probability: {}, Samples: {}", probability, samples.len());
+                    // let samples = vad_audio_frame.get_samples();
                     if let Err(err) = app.emit(EVENT_NAME, HumanVoiceProbability { probability }) {
                         log_error!("Failed to send the detected human voice probability to the frontend: {}", err);
                     }
@@ -72,7 +71,7 @@ pub async fn human_voice_detection(
             audio_context.connect_gain_node(gain_node);
             audio_context.connect_vad_node(vad_node);
             audio_context.start();
-            let mut audio_context_lock = app_state.audio_context.lock().unwrap();
+            let mut audio_context_lock = app_state.human_voice_detection_context.lock().unwrap();
             audio_context_lock.replace(audio_context);
             Ok(EVENT_NAME.parse().unwrap())
         }
@@ -85,7 +84,7 @@ pub async fn human_voice_detection(
 #[tauri::command]
 pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Result<bool, String> {
     let mut audio_context_lock = app_state
-        .audio_context
+        .human_voice_detection_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
     if let Some(mut audio_context) = audio_context_lock.take() {

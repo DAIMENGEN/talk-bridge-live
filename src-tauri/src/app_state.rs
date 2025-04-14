@@ -1,9 +1,9 @@
 use crate::audio::audio_context::AudioContext;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use tauri::State;
 
 pub struct AppState {
-    microphone_gain: Arc<Mutex<f32>>,
+    microphone_gain: Arc<RwLock<f32>>,
     recording_context: Arc<Mutex<Option<AudioContext>>>,
     human_voice_detection_context: Arc<Mutex<Option<AudioContext>>>,
 }
@@ -11,7 +11,7 @@ pub struct AppState {
 impl AppState {
     pub fn new() -> Self {
         AppState {
-            microphone_gain: Arc::new(Mutex::new(1.0)),
+            microphone_gain: Arc::new(RwLock::new(1.0)),
             recording_context: Arc::new(None.into()),
             human_voice_detection_context: Arc::new(None.into()),
         }
@@ -20,7 +20,7 @@ impl AppState {
     pub fn set_microphone_gain(&self, microphone_gain: f32) -> Result<bool, String> {
         let mut microphone_gain_lock = self
             .microphone_gain
-            .lock()
+            .write()
             .map_err(|err| format!("Failed to lock microphone gain: {}", err))?;
         *microphone_gain_lock = microphone_gain;
         Ok(true)
@@ -44,7 +44,7 @@ impl AppState {
         Ok(())
     }
 
-    pub fn get_microphone_gain(&self) -> Arc<Mutex<f32>> {
+    pub fn get_microphone_gain(&self) -> Arc<RwLock<f32>> {
         self.microphone_gain.clone()
     }
 

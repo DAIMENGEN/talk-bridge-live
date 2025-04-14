@@ -1,12 +1,12 @@
 use crate::audio::audio_node::AudioNode;
 use crate::audio::AudioFrame;
-use crate::log_error;
-use std::sync::{Arc, Mutex};
+use crate::{log_error, log_info};
+use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 pub struct GainNode {
-    gain: Arc<Mutex<f32>>,
+    gain: Arc<RwLock<f32>>,
     sender: Sender<AudioFrame>,
     input_source: Option<Receiver<AudioFrame>>,
     output_source: Option<Receiver<AudioFrame>>,
@@ -16,14 +16,14 @@ impl GainNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = mpsc::channel::<AudioFrame>(channel_capacity);
         GainNode {
-            gain: Arc::new(Mutex::new(1.0)),
+            gain: Arc::new(RwLock::new(1.0)),
             sender,
             input_source: None,
             output_source: Some(output_source),
         }
     }
 
-    pub fn set_gain(&mut self, gain: Arc<Mutex<f32>>) {
+    pub fn set_gain(&mut self, gain: Arc<RwLock<f32>>) {
         self.gain = gain;
     }
 }
@@ -43,7 +43,7 @@ impl AudioNode<AudioFrame, AudioFrame> for GainNode {
             let sender = self.sender.clone();
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
-                    let gain = if let Ok(gain) = gain.lock() {
+                    let gain = if let Ok(gain) = gain.write() {
                         *gain
                     } else {
                         1.0

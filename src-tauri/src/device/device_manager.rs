@@ -88,8 +88,10 @@ pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Resul
     let mut human_voice_detection_context_lock = human_voice_detection_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
-    if let Some(audio_context) = human_voice_detection_context_lock.take() {
-        audio_context.close();
+    // Here, ownership of context is taken from app_state using take.
+    // Once it's taken, app_state no longer owns context, and everything related to context will be dropped and cleaned up.
+    if let Some(context) = human_voice_detection_context_lock.take() {
+        context.close();
     }
     Ok(true)
 }

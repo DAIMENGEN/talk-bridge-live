@@ -27,8 +27,12 @@ pub async fn start_recording(
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);
             let mut receiver = assembler_node.connect_input_source(receiver);
-            let microphone_gain = app_state.get_microphone_gain().clone();
+            let tolerance = app_state.get_audio_tolerance();
+            let microphone_gain = app_state.get_microphone_gain();
+            let speech_threshold = app_state.get_speech_threshold();
             gain_node.set_gain(microphone_gain);
+            assembler_node.set_tolerance(tolerance);
+            assembler_node.set_speech_threshold(speech_threshold);
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
                     let datetime = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -61,7 +65,7 @@ pub async fn start_recording(
 }
 
 #[tauri::command]
-pub async fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, String> {
+pub fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, String> {
     let recording_context = app_state.get_recording_context();
     let mut recording_context_lock = recording_context
         .lock()

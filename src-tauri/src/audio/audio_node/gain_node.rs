@@ -4,6 +4,7 @@ use crate::log_error;
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
+use crate::app_state::DEFAULT_MICROPHONE_GAIN;
 
 pub struct GainNode {
     gain: Arc<RwLock<f32>>,
@@ -16,7 +17,7 @@ impl GainNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = mpsc::channel::<AudioFrame>(channel_capacity);
         GainNode {
-            gain: Arc::new(RwLock::new(1.0)),
+            gain: Arc::new(RwLock::new(DEFAULT_MICROPHONE_GAIN)),
             sender,
             input_source: None,
             output_source: Some(output_source),

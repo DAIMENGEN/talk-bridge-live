@@ -16,8 +16,4 @@ export class TauriDeviceService {
     static listMicrophoneNames(): Promise<string[]> {
         return invoke<string[]>("list_microphone_names");
     }
-
-    static setMicrophoneGain(microphoneGain: number): Promise<boolean> {
-        return invoke<boolean>("set_microphone_gain", {microphone_gain: microphoneGain});
-    }
 }

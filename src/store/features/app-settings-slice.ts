@@ -3,8 +3,9 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 export type AppSettingsStore = {
     isOpenSettings: boolean;
     isShowSettingsButton: boolean;
-    speakerVolume: number;
+    audioTolerance: number;
     microphoneGain: number;
+    speechThreshold: number;
     selectedSpeakerName?: string;
     selectedMicrophoneName?: string;
 }
@@ -12,8 +13,9 @@ export type AppSettingsStore = {
 const initialState: AppSettingsStore = {
     isOpenSettings: false,
     isShowSettingsButton: false,
-    speakerVolume: 1,
-    microphoneGain: 1,
+    audioTolerance: 1,
+    microphoneGain: 1.0,
+    speechThreshold: 0.5,
     selectedSpeakerName: undefined,
     selectedMicrophoneName: undefined
 }
@@ -28,11 +30,14 @@ const appSettingsSlice = createSlice({
         setIsShowSettingsButton: (state, action: PayloadAction<boolean>) => {
             state.isShowSettingsButton = action.payload;
         },
-        setSpeakerVolume: (state, action: PayloadAction<number>) => {
-            state.speakerVolume = action.payload;
+        setAudioTolerance: (state, action: PayloadAction<number>) => {
+            state.audioTolerance = action.payload;
         },
         setMicrophoneGain: (state, action: PayloadAction<number>) => {
             state.microphoneGain = action.payload;
+        },
+        setSpeechThreshold: (state, action: PayloadAction<number>) => {
+            state.speechThreshold = action.payload;
         },
         setSelectedSpeakerName: (state, action: PayloadAction<string | undefined>) => {
             state.selectedSpeakerName = action.payload;
@@ -46,8 +51,9 @@ const appSettingsSlice = createSlice({
 export const {
     setIsOpenSettings,
     setIsShowSettingsButton,
-    setSpeakerVolume,
+    setAudioTolerance,
     setMicrophoneGain,
+    setSpeechThreshold,
     setSelectedSpeakerName,
     setSelectedMicrophoneName
 } = appSettingsSlice.actions;

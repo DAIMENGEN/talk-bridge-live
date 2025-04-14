@@ -4,17 +4,19 @@ import {CloseOutlined} from "@ant-design/icons";
 import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {setIsOpenSettings} from "@src/store/features/app-settings-slice.ts";
 import {MicrophoneSelect} from "@src/components/desktop-app/app-settings/microphone-select/microphone-select.tsx";
-import {SpeakerSelect} from "@src/components/desktop-app/app-settings/speaker-select/speaker-select.tsx";
 import {LabelBlock} from "@src/components/label-block/label-block.tsx";
 import {
-    MicrophoneGainControl
-} from "@src/components/desktop-app/app-settings/microphone-gain-control/microphone-gain-control.tsx";
-import {
-    SpeakerHumanVoiceDetection
-} from "@src/components/desktop-app/app-settings/speaker-human-voice-detection/speaker-human-voice-detection.tsx";
+    MicrophoneGainAdjust
+} from "@src/components/desktop-app/app-settings/microphone-gain-adjust/microphone-gain-adjust.tsx";
 import {
     MicrophoneHumanVoiceDetection
 } from "@src/components/desktop-app/app-settings/microphone-human-voice-detection/microphone-human-voice-detection.tsx";
+import {
+    SpeechThresholdAdjust
+} from "@src/components/desktop-app/app-settings/speech-threshold-adjust/speech-threshold-adjust.tsx";
+import {
+    AudioToleranceAdjust
+} from "@src/components/desktop-app/app-settings/audio-tolerance-adjust/audio-tolerance-adjust.tsx";
 
 export const AppSettings = () => {
     const appDispatch = useAppDispatch();
@@ -29,14 +31,11 @@ export const AppSettings = () => {
                 onClose={() => appDispatch(setIsOpenSettings(false))}>
             <Space direction="vertical" size="middle" style={{display: 'flex'}}>
                 <Card title="Microphone Settings" variant="borderless" hoverable>
-                    <LabelBlock label="Select Microphone" content={<MicrophoneSelect/>}/>
-                    <LabelBlock label="Gain Control" content={<MicrophoneGainControl/>}/>
+                    <LabelBlock label="Microphone Select" content={<MicrophoneSelect/>}/>
+                    <LabelBlock label="Microphone Gain Adjust" content={<MicrophoneGainAdjust/>}/>
+                    <LabelBlock label="Audio Tolerance Adjust" content={<AudioToleranceAdjust/>}/>
+                    <LabelBlock label="Speech Threshold Adjust" content={<SpeechThresholdAdjust/>}/>
                     <LabelBlock label="Human Voice Detection" content={<MicrophoneHumanVoiceDetection/>}/>
-                </Card>
-
-                <Card title="Speaker Settings" variant="borderless" hoverable>
-                    <LabelBlock label="Select Speaker" content={<SpeakerSelect/>}/>
-                    <LabelBlock label="Speaker Volume Control" content={<SpeakerHumanVoiceDetection/>}/>
                 </Card>
             </Space>
         </Drawer>

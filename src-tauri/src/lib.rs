@@ -4,7 +4,7 @@ mod device;
 mod logger;
 mod silero_vad;
 
-use crate::app_state::{set_microphone_gain, AppState};
+use crate::app_state::{set_microphone_gain, set_speech_threshold, set_audio_tolerance, AppState};
 use crate::audio::recorder::{start_recording, stop_recording};
 use crate::device::device_manager::{
     human_voice_detection, list_microphone_names, list_speaker_names,
@@ -37,7 +37,9 @@ pub fn run() {
             stop_recording,
             start_recording,
             list_speaker_names,
+            set_audio_tolerance,
             set_microphone_gain,
+            set_speech_threshold,
             list_microphone_names,
             human_voice_detection,
             stop_human_voice_detection,

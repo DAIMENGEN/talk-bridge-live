@@ -32,7 +32,7 @@ impl AudioContext {
         }
     }
 
-    pub fn close(&mut self) {
+    pub fn close(&self) {
         self.microphone.pause();
     }
 

@@ -88,7 +88,7 @@ pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Resul
     let mut human_voice_detection_context_lock = human_voice_detection_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
-    if let Some(mut audio_context) = human_voice_detection_context_lock.take() {
+    if let Some(audio_context) = human_voice_detection_context_lock.take() {
         audio_context.close();
     }
     Ok(true)

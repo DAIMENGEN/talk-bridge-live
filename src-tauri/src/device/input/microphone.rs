@@ -120,7 +120,7 @@ impl Microphone {
         };
         Ok(rx)
     }
-    pub fn play(&mut self) {
+    pub fn play(&self) {
         if let Some(stream) = &self.stream {
             match stream.play() {
                 Ok(_) => {
@@ -139,7 +139,7 @@ impl Microphone {
             }
         }
     }
-    pub fn pause(&mut self) {
+    pub fn pause(&self) {
         if let Some(stream) = &self.stream {
             match stream.pause() {
                 Ok(_) => {

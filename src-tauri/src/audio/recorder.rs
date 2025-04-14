@@ -68,7 +68,7 @@ pub async fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, Stri
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
     // Here, the take method takes ownership of the audio_context, and AppState loses ownership.
     // TODO Consider whether to optimize this in the future.
-    if let Some(mut recording_context) = recording_context_lock.take() {
+    if let Some(recording_context) = recording_context_lock.take() {
         recording_context.close();
     }
     Ok(true)

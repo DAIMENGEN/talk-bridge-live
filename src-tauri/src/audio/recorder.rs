@@ -27,7 +27,7 @@ pub async fn start_recording(
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);
             let mut receiver = assembler_node.connect_input_source(receiver);
-            let microphone_gain = app_state.microphone_gain.clone();
+            let microphone_gain = app_state.get_microphone_gain().clone();
             gain_node.set_gain(microphone_gain);
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
@@ -48,9 +48,10 @@ pub async fn start_recording(
             audio_context.connect_vad_node(vad_node);
             audio_context.connect_assembler_node(assembler_node);
             audio_context.start();
-            let mut audio_context_lock = app_state.recording_context.lock().unwrap();
-            audio_context_lock.replace(audio_context);
-            Ok(EVENT_NAME.parse().unwrap())
+            match app_state.set_recording_context(audio_context) {
+                Ok(_) => Ok(EVENT_NAME.parse().unwrap()),
+                Err(err) => Err(format!("Failed to save recording context: {}", err)),
+            }
         }
         Err(err) => Err(format!(
             "Microphone {} not found, error: {}",
@@ -61,14 +62,14 @@ pub async fn start_recording(
 
 #[tauri::command]
 pub async fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, String> {
-    let mut recording_context_lock = app_state
-        .recording_context
+    let recording_context = app_state.get_recording_context();
+    let mut recording_context_lock = recording_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
     // Here, the take method takes ownership of the audio_context, and AppState loses ownership.
     // TODO Consider whether to optimize this in the future.
-    if let Some(mut audio_context) = recording_context_lock.take() {
-        audio_context.close();
+    if let Some(mut recording_context) = recording_context_lock.take() {
+        recording_context.close();
     }
     Ok(true)
 }

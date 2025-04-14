@@ -56,7 +56,7 @@ pub async fn human_voice_detection(
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
             let mut receiver = vad_node.connect_input_source(receiver);
-            let microphone_gain = app_state.microphone_gain.clone();
+            let microphone_gain = app_state.get_microphone_gain();
             gain_node.set_gain(microphone_gain);
             tokio::spawn(async move {
                 while let Some(vad_audio_frame) = receiver.recv().await {
@@ -71,9 +71,10 @@ pub async fn human_voice_detection(
             audio_context.connect_gain_node(gain_node);
             audio_context.connect_vad_node(vad_node);
             audio_context.start();
-            let mut audio_context_lock = app_state.human_voice_detection_context.lock().unwrap();
-            audio_context_lock.replace(audio_context);
-            Ok(EVENT_NAME.parse().unwrap())
+            match app_state.set_human_voice_detection_context(audio_context) {
+                Ok(_) => Ok(EVENT_NAME.parse().unwrap()),
+                Err(err) => Err(format!("Failed to save human voice detection context: {}", err)),
+            }
         }
         Err(err) => Err(format!(
             "Microphone {} not found, error: {}",
@@ -83,11 +84,11 @@ pub async fn human_voice_detection(
 }
 #[tauri::command]
 pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Result<bool, String> {
-    let mut audio_context_lock = app_state
-        .human_voice_detection_context
+    let human_voice_detection_context = app_state.get_human_voice_detection_context();
+    let mut human_voice_detection_context_lock = human_voice_detection_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
-    if let Some(mut audio_context) = audio_context_lock.take() {
+    if let Some(mut audio_context) = human_voice_detection_context_lock.take() {
         audio_context.close();
     }
     Ok(true)
@@ -118,15 +119,4 @@ pub async fn list_speaker_names() -> Result<Vec<String>, String> {
         Err(err) => Err(format!("Failed to list speaker names: {}", err)),
     }
 }
-#[tauri::command(rename_all = "snake_case")]
-pub async fn set_microphone_gain(
-    app_state: State<'_, AppState>,
-    microphone_gain: f32,
-) -> Result<bool, String> {
-    let mut microphone_gain_lock = app_state
-        .microphone_gain
-        .lock()
-        .map_err(|err| format!("Failed to lock microphone gain: {}", err))?;
-    *microphone_gain_lock = microphone_gain;
-    Ok(true)
-}
+

@@ -1,32 +1,22 @@
+mod app_state;
 mod audio;
 mod device;
 mod logger;
 mod silero_vad;
 
-use crate::audio::audio_context::AudioContext;
+use crate::app_state::{set_microphone_gain, AppState};
 use crate::audio::recorder::{start_recording, stop_recording};
 use crate::device::device_manager::{
-    human_voice_detection, list_microphone_names, list_speaker_names, set_microphone_gain,
+    human_voice_detection, list_microphone_names, list_speaker_names,
     stop_human_voice_detection,
 };
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use tauri_plugin_log::{RotationStrategy, Target, TargetKind, TimezoneStrategy};
-
-pub struct AppState {
-    microphone_gain: Arc<Mutex<f32>>,
-    recording_context: Mutex<Option<AudioContext>>,
-    human_voice_detection_context: Mutex<Option<AudioContext>>,
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .manage(AppState {
-            microphone_gain: Arc::new(Mutex::new(1.0)),
-            recording_context: None.into(),
-            human_voice_detection_context: None.into(),
-        })
+        .manage(AppState::new())
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_log::Builder::new()

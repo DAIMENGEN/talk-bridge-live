@@ -13,4 +13,8 @@ export class TauriStateService {
     static setSpeechThreshold(speechThreshold: number): Promise<boolean> {
         return invoke<boolean>("set_speech_threshold", {speech_threshold: speechThreshold});
     }
+
+    static setSpeechMergeThreshold(speechMergeThreshold: number): Promise<boolean> {
+        return invoke<boolean>("set_speech_merge_threshold", {speech_merge_threshold: speechMergeThreshold});
+    }
 }

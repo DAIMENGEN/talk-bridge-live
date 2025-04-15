@@ -4,7 +4,7 @@ mod device;
 mod logger;
 mod silero_vad;
 
-use crate::app_state::{set_microphone_gain, set_speech_threshold, set_audio_tolerance, AppState};
+use crate::app_state::{set_microphone_gain, set_speech_threshold, set_audio_tolerance, AppState, set_speech_merge_threshold};
 use crate::audio::recorder::{start_recording, stop_recording};
 use crate::device::device_manager::{
     human_voice_detection, list_microphone_names, list_speaker_names,
@@ -43,6 +43,7 @@ pub fn run() {
             list_microphone_names,
             human_voice_detection,
             stop_human_voice_detection,
+            set_speech_merge_threshold,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

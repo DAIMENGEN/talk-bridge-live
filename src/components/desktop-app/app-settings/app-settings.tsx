@@ -17,6 +17,9 @@ import {
 import {
     AudioToleranceAdjust
 } from "@src/components/desktop-app/app-settings/audio-tolerance-adjust/audio-tolerance-adjust.tsx";
+import {
+    SpeechMergeThresholdAdjust
+} from "@src/components/desktop-app/app-settings/speech-merge-threshold-adjust/speech-merge-threshold-adjust.tsx";
 
 export const AppSettings = () => {
     const appDispatch = useAppDispatch();
@@ -35,6 +38,7 @@ export const AppSettings = () => {
                     <LabelBlock label="Microphone Gain Adjust" content={<MicrophoneGainAdjust/>}/>
                     <LabelBlock label="Audio Tolerance Adjust" content={<AudioToleranceAdjust/>}/>
                     <LabelBlock label="Speech Threshold Adjust" content={<SpeechThresholdAdjust/>}/>
+                    <LabelBlock label="Speech Merge Threshold Adjust" content={<SpeechMergeThresholdAdjust/>}/>
                     <LabelBlock label="Human Voice Detection" content={<MicrophoneHumanVoiceDetection/>}/>
                 </Card>
             </Space>

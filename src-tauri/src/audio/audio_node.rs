@@ -7,6 +7,7 @@ pub mod gain_node;
 pub mod source_node;
 pub mod vad_node;
 pub mod speech_extractor_node;
+pub mod speech_context_node;
 
 pub trait AudioNode<Input: Send, Output: Send>: Send {
     fn connect_input_source(&mut self, input_source: Receiver<Input>) -> Receiver<Output>;
@@ -18,6 +19,7 @@ pub enum AudioNodeEnum {
     GainNode(Box<dyn AudioNode<AudioFrame, AudioFrame>>),
     VadNode(Box<dyn AudioNode<AudioFrame, VadAudioFrame>>),
     SpeechExtractorNode(Box<dyn AudioNode<VadAudioFrame, SpeechAudioFrame>>),
+    SpeechContextNode(Box<dyn AudioNode<SpeechAudioFrame, AudioFrame>>)
 }
 
 impl AudioNodeEnum {
@@ -27,6 +29,7 @@ impl AudioNodeEnum {
             AudioNodeEnum::GainNode(node) => node.process(),
             AudioNodeEnum::VadNode(node) => node.process(),
             AudioNodeEnum::SpeechExtractorNode(node) => node.process(),
+            AudioNodeEnum::SpeechContextNode(node) => node.process(),
         }
     }
 }

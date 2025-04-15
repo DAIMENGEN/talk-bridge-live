@@ -8,10 +8,13 @@ pub const DEFAULT_MICROPHONE_GAIN: f32 = 1.0;
 
 pub const DEFAULT_SPEECH_THRESHOLD: f32 = 0.5;
 
+pub const DEFAULT_SPEECH_MERGE_THRESHOLD: f32 = 0.5;
+
 pub struct AppState {
     audio_tolerance: Arc<RwLock<usize>>,
     microphone_gain: Arc<RwLock<f32>>,
     speech_threshold: Arc<RwLock<f32>>,
+    speech_merge_threshold: Arc<RwLock<f32>>,
     recording_context: Arc<Mutex<Option<AudioContext>>>,
     human_voice_detection_context: Arc<Mutex<Option<AudioContext>>>,
 }
@@ -22,6 +25,7 @@ impl AppState {
             audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             microphone_gain: Arc::new(RwLock::new(DEFAULT_MICROPHONE_GAIN)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
+            speech_merge_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_MERGE_THRESHOLD)),
             recording_context: Arc::new(None.into()),
             human_voice_detection_context: Arc::new(None.into()),
         }
@@ -51,6 +55,15 @@ impl AppState {
             .write()
             .map_err(|err| format!("Failed to lock speech threshold: {}", err))?;
         *speech_threshold_lock = speech_threshold;
+        Ok(true)
+    }
+
+    pub fn set_speech_merge_threshold(&self, speech_merge_threshold: f32) -> Result<bool, String> {
+        let mut speech_merge_threshold_lock = self
+            .speech_merge_threshold
+            .write()
+            .map_err(|err| format!("Failed to lock speech merge threshold: {}", err))?;
+        *speech_merge_threshold_lock = speech_merge_threshold;
         Ok(true)
     }
 
@@ -87,6 +100,10 @@ impl AppState {
         self.speech_threshold.clone()
     }
 
+    pub fn get_speech_merge_threshold(&self) -> Arc<RwLock<f32>> {
+        self.speech_merge_threshold.clone()
+    }
+
     pub fn get_recording_context(&self) -> Arc<Mutex<Option<AudioContext>>> {
         self.recording_context.clone()
     }
@@ -115,4 +132,12 @@ pub fn set_speech_threshold(
     speech_threshold: f32,
 ) -> Result<bool, String> {
     app_state.set_speech_threshold(speech_threshold)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn set_speech_merge_threshold(
+    app_state: State<'_, AppState>,
+    speech_merge_threshold: f32,
+) -> Result<bool, String> {
+    app_state.set_speech_merge_threshold(speech_merge_threshold)
 }

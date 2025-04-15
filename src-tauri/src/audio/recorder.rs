@@ -22,17 +22,17 @@ pub async fn start_recording(
             let mut source_node = audio_context.create_source_node();
             let mut gain_node = audio_context.create_gain_node();
             let mut vad_node = audio_context.create_vad_node();
-            let mut assembler_node = audio_context.create_assembler_node();
+            let mut reassembly_node = audio_context.create_reassembly_node();
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);
-            let mut receiver = assembler_node.connect_input_source(receiver);
+            let mut receiver = reassembly_node.connect_input_source(receiver);
             let tolerance = app_state.get_audio_tolerance();
             let microphone_gain = app_state.get_microphone_gain();
             let speech_threshold = app_state.get_speech_threshold();
             gain_node.set_gain(microphone_gain);
-            assembler_node.set_tolerance(tolerance);
-            assembler_node.set_speech_threshold(speech_threshold);
+            reassembly_node.set_tolerance(tolerance);
+            reassembly_node.set_speech_threshold(speech_threshold);
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
                     let datetime = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -50,7 +50,7 @@ pub async fn start_recording(
             audio_context.connect_source_node(source_node);
             audio_context.connect_gain_node(gain_node);
             audio_context.connect_vad_node(vad_node);
-            audio_context.connect_assembler_node(assembler_node);
+            audio_context.connect_reassembly_node(reassembly_node);
             audio_context.start();
             match app_state.set_recording_context(audio_context) {
                 Ok(_) => Ok(EVENT_NAME.parse().unwrap()),

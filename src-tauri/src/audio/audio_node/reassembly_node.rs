@@ -10,7 +10,7 @@ use crate::app_state::{DEFAULT_SPEECH_THRESHOLD, DEFAULT_TOLERANCE};
 
 
 
-pub struct AssemblerNode {
+pub struct ReassemblyNode {
     audio_tolerance: Arc<RwLock<usize>>,
     speech_threshold: Arc<RwLock<f32>>,
     sender: Sender<AudioFrame>,
@@ -18,10 +18,10 @@ pub struct AssemblerNode {
     output_source: Option<Receiver<AudioFrame>>,
 }
 
-impl AssemblerNode {
+impl ReassemblyNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = mpsc::channel::<AudioFrame>(channel_capacity);
-        AssemblerNode {
+        ReassemblyNode {
             audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
             sender,
@@ -39,15 +39,15 @@ impl AssemblerNode {
     }
 }
 
-impl AudioNode<VadAudioFrame, AudioFrame> for AssemblerNode {
+impl AudioNode<VadAudioFrame, AudioFrame> for ReassemblyNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<VadAudioFrame>,
     ) -> Receiver<AudioFrame> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
-            log_error!("Assembler node output source is None");
-            panic!("Assembler node output source is None")
+            log_error!("Reassembly node output source is None");
+            panic!("Reassembly node output source is None")
         })
     }
 
@@ -93,7 +93,7 @@ impl AudioNode<VadAudioFrame, AudioFrame> for AssemblerNode {
                     {
                         if let Err(err) = sender.send(speech_frame.make_contiguous().to_vec()).await
                         {
-                            log_error!("Assembler node failed to send audio frame to receiver: {}", err);
+                            log_error!("Reassembly node failed to send audio frame to receiver: {}", err);
                         }
                         speech_frame.clear();
                         probabilities.clear();

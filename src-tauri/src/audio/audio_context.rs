@@ -5,7 +5,7 @@ use crate::audio::audio_node::AudioNodeEnum;
 use crate::device::input::microphone::Microphone;
 use std::error::Error;
 use tokio::sync::mpsc::Receiver;
-use crate::audio::audio_node::assembler_node::AssemblerNode;
+use crate::audio::audio_node::reassembly_node::ReassemblyNode;
 
 pub struct AudioContext {
     microphone: Microphone,
@@ -52,7 +52,7 @@ impl AudioContext {
         self.connect_audio_node(AudioNodeEnum::VadNode(Box::new(audio_node)))
     }
 
-    pub fn connect_assembler_node(&mut self, audio_node: AssemblerNode) {
+    pub fn connect_reassembly_node(&mut self, audio_node: ReassemblyNode) {
         self.connect_audio_node(AudioNodeEnum::AssemblerNode(Box::new(audio_node)))
     }
 
@@ -70,7 +70,7 @@ impl AudioContext {
         VadNode::new(1024, sample_rate, chunk_size)
     }
 
-    pub fn create_assembler_node(&self) -> AssemblerNode {
-        AssemblerNode::new(1024)
+    pub fn create_reassembly_node(&self) -> ReassemblyNode {
+        ReassemblyNode::new(1024)
     }
 }

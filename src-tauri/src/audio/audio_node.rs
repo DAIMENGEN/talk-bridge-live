@@ -5,7 +5,7 @@ use tokio::sync::mpsc::Receiver;
 pub mod gain_node;
 pub mod source_node;
 pub mod vad_node;
-pub mod assembler_node;
+pub mod reassembly_node;
 
 pub trait AudioNode<Input: Send, Output: Send>: Send {
     fn connect_input_source(&mut self, input_source: Receiver<Input>) -> Receiver<Output>;

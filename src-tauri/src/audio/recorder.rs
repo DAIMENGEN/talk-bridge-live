@@ -1,4 +1,3 @@
-use chrono::Local;
 use crate::audio::audio_context::AudioContext;
 use crate::audio::audio_node::AudioNode;
 use crate::audio::transcription::TranscriptData;
@@ -24,12 +23,16 @@ pub async fn start_recording(
             let mut vad_node = audio_context.create_vad_node();
             let mut speech_extractor_node = audio_context.create_speech_extractor_node();
             let mut speech_assembler_node = audio_context.create_speech_assembler_node();
+            let mut speech_translator_node = audio_context.create_speech_translator_node();
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);
             let receiver = speech_extractor_node.connect_input_source(receiver);
-            let mut receiver = speech_assembler_node.connect_input_source(receiver);
+            let receiver = speech_assembler_node.connect_input_source(receiver);
+            let mut receiver = speech_translator_node.connect_input_source(receiver);
+            let speaker = app_state.get_speaker();
             let tolerance = app_state.get_audio_tolerance();
+            let meeting_room = app_state.get_meeting_room();
             let microphone_gain = app_state.get_microphone_gain();
             let speech_threshold = app_state.get_speech_threshold();
             let speech_merge_threshold = app_state.get_speech_merge_threshold();
@@ -37,12 +40,19 @@ pub async fn start_recording(
             speech_extractor_node.set_tolerance(tolerance);
             speech_extractor_node.set_speech_threshold(speech_threshold);
             speech_assembler_node.set_merge_threshold(speech_merge_threshold);
+            speech_translator_node.set_speaker(speaker);
+            speech_translator_node.set_meeting_room(meeting_room);
+            audio_context.connect_source_node(source_node);
+            audio_context.connect_gain_node(gain_node);
+            audio_context.connect_vad_node(vad_node);
+            audio_context.connect_speech_extractor_node(speech_extractor_node);
+            audio_context.connect_speech_assembler_node(speech_assembler_node);
+            audio_context.connect_speech_translator_node(speech_translator_node);
+            audio_context.start();
             tokio::spawn(async move {
-                while let Some(samples) = receiver.recv().await {
-                    let datetime = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-                    let transcript = format!("音频已经开始转录，记录音频的样本长度: {}", samples.len());
+                while let Some(result) = receiver.recv().await {
                     if let Err(err) =
-                        app.emit(EVENT_NAME, TranscriptData::new(datetime, transcript))
+                        app.emit(EVENT_NAME, TranscriptData::new("".to_string(), result.into_text()))
                     {
                         log_error!(
                                 "Failed to send the transcript result to the frontend: {}",
@@ -51,12 +61,6 @@ pub async fn start_recording(
                     }
                 }
             });
-            audio_context.connect_source_node(source_node);
-            audio_context.connect_gain_node(gain_node);
-            audio_context.connect_vad_node(vad_node);
-            audio_context.connect_speech_extractor_node(speech_extractor_node);
-            audio_context.connect_speech_assembler_node(speech_assembler_node);
-            audio_context.start();
             match app_state.set_recording_context(audio_context) {
                 Ok(_) => Ok(EVENT_NAME.parse().unwrap()),
                 Err(err) => Err(format!("Failed to save recording context: {}", err)),

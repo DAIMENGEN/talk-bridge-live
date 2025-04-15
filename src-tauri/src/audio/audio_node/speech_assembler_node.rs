@@ -8,16 +8,63 @@ use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
+pub struct SpeechAssemblerResult {
+    start_record_time: DateTime<Local>,
+    end_record_time: DateTime<Local>,
+    samples: AudioFrame,
+}
+
+impl SpeechAssemblerResult {
+    pub fn new(
+        start_record_time: DateTime<Local>,
+        end_record_time: DateTime<Local>,
+        samples: AudioFrame,
+    ) -> Self {
+        SpeechAssemblerResult {
+            start_record_time,
+            end_record_time,
+            samples,
+        }
+    }
+
+    pub fn start_record_time(&self) -> &DateTime<Local> {
+        &self.start_record_time
+    }
+
+    #[allow(dead_code)]
+    pub fn into_start_record_time(self) -> DateTime<Local> {
+        self.start_record_time
+    }
+
+    pub fn end_record_time(&self) -> &DateTime<Local> {
+        &self.end_record_time
+    }
+
+    #[allow(dead_code)]
+    pub fn into_end_record_time(self) -> DateTime<Local> {
+        self.end_record_time
+    }
+
+    pub fn samples(&self) -> &AudioFrame {
+        &self.samples
+    }
+
+    #[allow(dead_code)]
+    pub fn into_samples(self) -> AudioFrame {
+        self.samples
+    }
+}
+
 pub struct SpeechAssemblerNode {
     speech_merge_threshold: Arc<RwLock<f32>>,
-    sender: Sender<AudioFrame>,
+    sender: Sender<SpeechAssemblerResult>,
     input_source: Option<Receiver<SpeechExtractorResult>>,
-    output_source: Option<Receiver<AudioFrame>>,
+    output_source: Option<Receiver<SpeechAssemblerResult>>,
 }
 
 impl SpeechAssemblerNode {
     pub fn new(channel_capacity: usize) -> Self {
-        let (sender, output_source) = channel::<AudioFrame>(channel_capacity);
+        let (sender, output_source) = channel::<SpeechAssemblerResult>(channel_capacity);
         SpeechAssemblerNode {
             speech_merge_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_MERGE_THRESHOLD)),
             sender,
@@ -31,11 +78,11 @@ impl SpeechAssemblerNode {
     }
 }
 
-impl AudioNode<SpeechExtractorResult, AudioFrame> for SpeechAssemblerNode {
+impl AudioNode<SpeechExtractorResult, SpeechAssemblerResult> for SpeechAssemblerNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<SpeechExtractorResult>,
-    ) -> Receiver<AudioFrame> {
+    ) -> Receiver<SpeechAssemblerResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
             log_error!("Speech context node output source is None");
@@ -49,35 +96,44 @@ impl AudioNode<SpeechExtractorResult, AudioFrame> for SpeechAssemblerNode {
             let speech_merge_threshold = self.speech_merge_threshold.clone();
             tokio::spawn(async move {
                 let mut audio_frame = VecDeque::<f32>::new();
-                let mut prev_end_record_time_option: Option<DateTime<Local>> = None;
+                let mut start_record_time_option: Option<DateTime<Local>> = None;
+                let mut end_record_time_option: Option<DateTime<Local>> = None;
                 while let Some(result) = receiver.recv().await {
+                    let samples = result.samples();
+                    let current_end_record_time = result.end_record_time();
+                    let current_start_record_time = result.start_record_time();
                     let speech_merge_threshold = speech_merge_threshold
                         .read()
                         .map_or(DEFAULT_SPEECH_MERGE_THRESHOLD, |threshold| *threshold);
-                    let samples = result.samples();
-                    let end_record_time = result.end_record_time();
-                    let start_record_time = result.start_record_time();
-                    match prev_end_record_time_option {
+                    if start_record_time_option.is_none() {
+                        start_record_time_option.replace(current_start_record_time.clone());
+                    }
+                    match end_record_time_option {
                         Some(prev_end_record_time) => {
-                            let duration =
-                                start_record_time.signed_duration_since(prev_end_record_time);
+                            let duration = current_start_record_time.signed_duration_since(prev_end_record_time);
                             let duration_millis = duration.num_milliseconds();
                             if duration_millis > (speech_merge_threshold * 1000f32) as i64 {
                                 audio_frame.clear();
-                                prev_end_record_time_option.replace(end_record_time.clone());
+                                start_record_time_option.replace(current_start_record_time.clone());
                             }
                             for sample in samples {
                                 audio_frame.push_front(sample.clone());
                             }
+                            end_record_time_option.replace(current_end_record_time.clone());
                         }
                         None => {
                             for sample in samples {
                                 audio_frame.push_front(sample.clone());
                             }
-                            prev_end_record_time_option.replace(end_record_time.clone());
+                            end_record_time_option.replace(current_end_record_time.clone());
                         }
                     }
-                    if let Err(err) = sender.send(audio_frame.make_contiguous().to_vec()).await {
+                    let speech_assembler_result = SpeechAssemblerResult::new(
+                       start_record_time_option.unwrap(),
+                       end_record_time_option.unwrap(),
+                       audio_frame.make_contiguous().to_vec(),
+                    );
+                    if let Err(err) = sender.send(speech_assembler_result).await {
                         log_error!(
                             "Speech context node failed to send audio frame to receiver: {}",
                             err

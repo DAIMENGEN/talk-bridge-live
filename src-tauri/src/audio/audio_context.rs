@@ -7,6 +7,7 @@ use std::error::Error;
 use tokio::sync::mpsc::Receiver;
 use crate::audio::audio_node::speech_assembler_node::SpeechAssemblerNode;
 use crate::audio::audio_node::speech_extractor_node::SpeechExtractorNode;
+use crate::audio::audio_node::speech_translator_node::SpeechTranslatorNode;
 
 pub struct AudioContext {
     microphone: Microphone,
@@ -61,6 +62,10 @@ impl AudioContext {
         self.connect_audio_node(AudioNodeEnum::SpeechAssemblerNode(Box::new(audio_node)))
     }
 
+    pub fn connect_speech_translator_node(&mut self, audio_node: SpeechTranslatorNode) {
+        self.connect_audio_node(AudioNodeEnum::SpeechTranslatorNode(Box::new(audio_node)))
+    }
+
     pub fn create_source_node(&self) -> SourceNode {
         SourceNode::new(1024)
     }
@@ -81,5 +86,9 @@ impl AudioContext {
 
     pub fn create_speech_assembler_node(&self) -> SpeechAssemblerNode {
         SpeechAssemblerNode::new(1024)
+    }
+
+    pub fn create_speech_translator_node(&self) -> SpeechTranslatorNode {
+        SpeechTranslatorNode::new(1024)
     }
 }

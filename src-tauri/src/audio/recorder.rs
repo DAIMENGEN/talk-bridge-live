@@ -4,7 +4,6 @@ use crate::audio::transcription::TranscriptData;
 use crate::device::device_manager::get_microphone_by_name;
 use crate::device::input::microphone::Microphone;
 use crate::{log_error, AppState};
-use chrono::Local;
 use tauri::{AppHandle, Emitter, State};
 
 #[tauri::command(rename_all = "snake_case")]
@@ -22,20 +21,22 @@ pub async fn start_recording(
             let mut source_node = audio_context.create_source_node();
             let mut gain_node = audio_context.create_gain_node();
             let mut vad_node = audio_context.create_vad_node();
-            let mut reassembly_node = audio_context.create_reassembly_node();
+            let mut speech_extractor_node = audio_context.create_speech_extractor_node();
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);
-            let mut receiver = reassembly_node.connect_input_source(receiver);
+            let mut receiver = speech_extractor_node.connect_input_source(receiver);
             let tolerance = app_state.get_audio_tolerance();
             let microphone_gain = app_state.get_microphone_gain();
             let speech_threshold = app_state.get_speech_threshold();
             gain_node.set_gain(microphone_gain);
-            reassembly_node.set_tolerance(tolerance);
-            reassembly_node.set_speech_threshold(speech_threshold);
+            speech_extractor_node.set_tolerance(tolerance);
+            speech_extractor_node.set_speech_threshold(speech_threshold);
             tokio::spawn(async move {
-                while let Some(samples) = receiver.recv().await {
-                    let datetime = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+                while let Some(speech_audio_frame) = receiver.recv().await {
+                    let start_record_time = speech_audio_frame.get_start_record_time();
+                    let samples = speech_audio_frame.get_samples();
+                    let datetime = start_record_time.format("%Y-%m-%d %H:%M:%S").to_string();
                     let transcript = format!("音频已经开始转录，记录音频的样本长度: {}", samples.len());
                     if let Err(err) =
                         app.emit(EVENT_NAME, TranscriptData::new(datetime, transcript))
@@ -50,7 +51,7 @@ pub async fn start_recording(
             audio_context.connect_source_node(source_node);
             audio_context.connect_gain_node(gain_node);
             audio_context.connect_vad_node(vad_node);
-            audio_context.connect_reassembly_node(reassembly_node);
+            audio_context.connect_speech_extractor_node(speech_extractor_node);
             audio_context.start();
             match app_state.set_recording_context(audio_context) {
                 Ok(_) => Ok(EVENT_NAME.parse().unwrap()),

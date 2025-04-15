@@ -4,24 +4,51 @@ use crate::audio::AudioFrame;
 use crate::{log_error, log_warn};
 use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
+use chrono::{DateTime, Local};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use crate::app_state::{DEFAULT_SPEECH_THRESHOLD, DEFAULT_TOLERANCE};
 
-
-
-pub struct ReassemblyNode {
-    audio_tolerance: Arc<RwLock<usize>>,
-    speech_threshold: Arc<RwLock<f32>>,
-    sender: Sender<AudioFrame>,
-    input_source: Option<Receiver<VadAudioFrame>>,
-    output_source: Option<Receiver<AudioFrame>>,
+pub struct SpeechAudioFrame {
+    start_record_time: DateTime<Local>,
+    end_record_time: DateTime<Local>,
+    samples: AudioFrame,
 }
 
-impl ReassemblyNode {
+impl SpeechAudioFrame {
+    pub fn new(start_record_time: DateTime<Local>, end_record_time: DateTime<Local>, samples: AudioFrame) -> Self {
+        SpeechAudioFrame {
+            start_record_time,
+            end_record_time,
+            samples,
+        }
+    }
+
+    pub fn get_start_record_time(&self) -> DateTime<Local> {
+        self.start_record_time
+    }
+
+    pub fn get_end_record_time(&self) -> DateTime<Local> {
+        self.end_record_time
+    }
+
+    pub fn get_samples(self) -> AudioFrame {
+        self.samples
+    }
+}
+
+pub struct SpeechExtractorNode {
+    audio_tolerance: Arc<RwLock<usize>>,
+    speech_threshold: Arc<RwLock<f32>>,
+    sender: Sender<SpeechAudioFrame>,
+    input_source: Option<Receiver<VadAudioFrame>>,
+    output_source: Option<Receiver<SpeechAudioFrame>>,
+}
+
+impl SpeechExtractorNode {
     pub fn new(channel_capacity: usize) -> Self {
-        let (sender, output_source) = mpsc::channel::<AudioFrame>(channel_capacity);
-        ReassemblyNode {
+        let (sender, output_source) = mpsc::channel::<SpeechAudioFrame>(channel_capacity);
+        SpeechExtractorNode {
             audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
             sender,
@@ -39,11 +66,11 @@ impl ReassemblyNode {
     }
 }
 
-impl AudioNode<VadAudioFrame, AudioFrame> for ReassemblyNode {
+impl AudioNode<VadAudioFrame, SpeechAudioFrame> for SpeechExtractorNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<VadAudioFrame>,
-    ) -> Receiver<AudioFrame> {
+    ) -> Receiver<SpeechAudioFrame> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
             log_error!("Reassembly node output source is None");
@@ -59,6 +86,7 @@ impl AudioNode<VadAudioFrame, AudioFrame> for ReassemblyNode {
             let audio_tolerance = self.audio_tolerance.clone();
             let speech_threshold = self.speech_threshold.clone();
             tokio::spawn(async move {
+                let mut start_record_time: Option<DateTime<Local>> = None;
                 while let Some(vad_audio_frame) = receiver.recv().await {
                     let audio_tolerance = if let Ok(audio_tolerance) = audio_tolerance.read() {
                         *audio_tolerance
@@ -81,17 +109,25 @@ impl AudioNode<VadAudioFrame, AudioFrame> for ReassemblyNode {
                     let probability = vad_audio_frame.get_probability();
                     let samples = vad_audio_frame.get_samples();
                     if probability >= speech_threshold {
+                        if start_record_time.is_none() {
+                            start_record_time.replace(Local::now());
+                        }
                         for sample in samples {
                             speech_frame.push_front(sample);
                         }
                     }
                     probabilities.push_front(probability);
-                    if probabilities
+                    if start_record_time.is_some() && probabilities
                         .iter()
                         .take(audio_tolerance)
                         .all(|&probability| probability < speech_threshold)
                     {
-                        if let Err(err) = sender.send(speech_frame.make_contiguous().to_vec()).await
+                        let speech_audio_frame = SpeechAudioFrame::new(
+                            start_record_time.take().unwrap(),
+                            Local::now(),
+                            speech_frame.make_contiguous().to_vec(),
+                        );
+                        if let Err(err) = sender.send(speech_audio_frame).await
                         {
                             log_error!("Reassembly node failed to send audio frame to receiver: {}", err);
                         }

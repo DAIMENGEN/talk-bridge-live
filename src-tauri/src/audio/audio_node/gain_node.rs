@@ -44,10 +44,10 @@ impl AudioNode<AudioFrame, AudioFrame> for GainNode {
             let sender = self.sender.clone();
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
-                    let gain = if let Ok(gain) = gain.write() {
+                    let gain = if let Ok(gain) = gain.read() {
                         *gain
                     } else {
-                        1.0
+                        DEFAULT_MICROPHONE_GAIN
                     };
                     let samples = samples.iter().map(|&x| x * gain).collect();
                     if let Err(err) = sender.send(samples).await {

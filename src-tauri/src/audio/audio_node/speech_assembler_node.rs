@@ -1,5 +1,5 @@
 use crate::app_state::DEFAULT_SPEECH_MERGE_THRESHOLD;
-use crate::audio::audio_node::speech_extractor_node::SpeechAudioFrame;
+use crate::audio::audio_node::speech_extractor_node::SpeechExtractorResult;
 use crate::audio::audio_node::AudioNode;
 use crate::audio::AudioFrame;
 use crate::log_error;
@@ -8,17 +8,17 @@ use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
-pub struct SpeechContextNode {
+pub struct SpeechAssemblerNode {
     speech_merge_threshold: Arc<RwLock<f32>>,
     sender: Sender<AudioFrame>,
-    input_source: Option<Receiver<SpeechAudioFrame>>,
+    input_source: Option<Receiver<SpeechExtractorResult>>,
     output_source: Option<Receiver<AudioFrame>>,
 }
 
-impl SpeechContextNode {
+impl SpeechAssemblerNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = channel::<AudioFrame>(channel_capacity);
-        SpeechContextNode {
+        SpeechAssemblerNode {
             speech_merge_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_MERGE_THRESHOLD)),
             sender,
             input_source: None,
@@ -31,10 +31,10 @@ impl SpeechContextNode {
     }
 }
 
-impl AudioNode<SpeechAudioFrame, AudioFrame> for SpeechContextNode {
+impl AudioNode<SpeechExtractorResult, AudioFrame> for SpeechAssemblerNode {
     fn connect_input_source(
         &mut self,
-        input_source: Receiver<SpeechAudioFrame>,
+        input_source: Receiver<SpeechExtractorResult>,
     ) -> Receiver<AudioFrame> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
@@ -50,13 +50,13 @@ impl AudioNode<SpeechAudioFrame, AudioFrame> for SpeechContextNode {
             tokio::spawn(async move {
                 let mut audio_frame = VecDeque::<f32>::new();
                 let mut prev_end_record_time_option: Option<DateTime<Local>> = None;
-                while let Some(speech_audio_frame) = receiver.recv().await {
+                while let Some(result) = receiver.recv().await {
                     let speech_merge_threshold = speech_merge_threshold
                         .read()
                         .map_or(DEFAULT_SPEECH_MERGE_THRESHOLD, |threshold| *threshold);
-                    let samples = speech_audio_frame.samples();
-                    let end_record_time = speech_audio_frame.end_record_time();
-                    let start_record_time = speech_audio_frame.start_record_time();
+                    let samples = result.samples();
+                    let end_record_time = result.end_record_time();
+                    let start_record_time = result.start_record_time();
                     match prev_end_record_time_option {
                         Some(prev_end_record_time) => {
                             let duration =

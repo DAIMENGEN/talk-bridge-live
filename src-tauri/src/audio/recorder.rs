@@ -23,12 +23,12 @@ pub async fn start_recording(
             let mut gain_node = audio_context.create_gain_node();
             let mut vad_node = audio_context.create_vad_node();
             let mut speech_extractor_node = audio_context.create_speech_extractor_node();
-            let mut speech_context_node = audio_context.create_speech_context_node();
+            let mut speech_assembler_node = audio_context.create_speech_assembler_node();
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);
             let receiver = speech_extractor_node.connect_input_source(receiver);
-            let mut receiver = speech_context_node.connect_input_source(receiver);
+            let mut receiver = speech_assembler_node.connect_input_source(receiver);
             let tolerance = app_state.get_audio_tolerance();
             let microphone_gain = app_state.get_microphone_gain();
             let speech_threshold = app_state.get_speech_threshold();
@@ -36,7 +36,7 @@ pub async fn start_recording(
             gain_node.set_gain(microphone_gain);
             speech_extractor_node.set_tolerance(tolerance);
             speech_extractor_node.set_speech_threshold(speech_threshold);
-            speech_context_node.set_merge_threshold(speech_merge_threshold);
+            speech_assembler_node.set_merge_threshold(speech_merge_threshold);
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
                     let datetime = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -55,7 +55,7 @@ pub async fn start_recording(
             audio_context.connect_gain_node(gain_node);
             audio_context.connect_vad_node(vad_node);
             audio_context.connect_speech_extractor_node(speech_extractor_node);
-            audio_context.connect_speech_context_node(speech_context_node);
+            audio_context.connect_speech_assembler_node(speech_assembler_node);
             audio_context.start();
             match app_state.set_recording_context(audio_context) {
                 Ok(_) => Ok(EVENT_NAME.parse().unwrap()),

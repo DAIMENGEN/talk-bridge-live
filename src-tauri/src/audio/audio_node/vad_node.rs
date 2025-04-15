@@ -5,14 +5,14 @@ use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use voice_activity_detector::VoiceActivityDetector;
 
-pub struct VadAudioFrame {
+pub struct VADResult {
     probability: f32,
     samples: AudioFrame,
 }
 
-impl VadAudioFrame {
+impl VADResult {
     pub fn new(probability: f32, samples: AudioFrame) -> Self {
-        VadAudioFrame {
+        VADResult {
             probability,
             samples,
         }
@@ -35,14 +35,14 @@ impl VadAudioFrame {
 pub struct VadNode {
     chunk_size: usize,
     sample_rate: u32,
-    sender: Sender<VadAudioFrame>,
+    sender: Sender<VADResult>,
     input_source: Option<Receiver<AudioFrame>>,
-    output_source: Option<Receiver<VadAudioFrame>>,
+    output_source: Option<Receiver<VADResult>>,
 }
 
 impl VadNode {
     pub fn new(channel_capacity: usize, sample_rate: u32, chunk_size: usize) -> Self {
-        let (sender, output_source) = mpsc::channel::<VadAudioFrame>(channel_capacity);
+        let (sender, output_source) = mpsc::channel::<VADResult>(channel_capacity);
         VadNode {
             sender,
             chunk_size,
@@ -53,11 +53,11 @@ impl VadNode {
     }
 }
 
-impl AudioNode<AudioFrame, VadAudioFrame> for VadNode {
+impl AudioNode<AudioFrame, VADResult> for VadNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<AudioFrame>,
-    ) -> Receiver<VadAudioFrame> {
+    ) -> Receiver<VADResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
             log_error!("Vad node output source is None");
@@ -87,7 +87,7 @@ impl AudioNode<AudioFrame, VadAudioFrame> for VadNode {
                     let len = samples.len().min(chunk_size);
                     audio_frame[..len].copy_from_slice(&samples[..len]);
                     let probability = vad.predict(audio_frame);
-                    if let Err(err) = sender.send(VadAudioFrame::new(probability, samples)).await {
+                    if let Err(err) = sender.send(VADResult::new(probability, samples)).await {
                         log_error!("Vad node failed to send audio frame to receiver: {}", err);
                     }
                 }

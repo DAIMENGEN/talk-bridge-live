@@ -20,6 +20,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 log = "0.4.27"
 cpal = "0.15.3"
+hound = "3.5.1"
 serde = "1.0.219"
 rubato = "0.16.2"
 chrono = "0.4.40"

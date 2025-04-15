@@ -1,13 +1,13 @@
+use crate::app_state::{DEFAULT_SPEECH_THRESHOLD, DEFAULT_TOLERANCE};
 use crate::audio::audio_node::vad_node::VadAudioFrame;
 use crate::audio::audio_node::AudioNode;
 use crate::audio::AudioFrame;
-use crate::{log_error, log_warn};
+use crate::log_error;
+use chrono::{DateTime, Local};
 use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
-use chrono::{DateTime, Local};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
-use crate::app_state::{DEFAULT_SPEECH_THRESHOLD, DEFAULT_TOLERANCE};
 
 pub struct SpeechAudioFrame {
     start_record_time: DateTime<Local>,
@@ -16,7 +16,11 @@ pub struct SpeechAudioFrame {
 }
 
 impl SpeechAudioFrame {
-    pub fn new(start_record_time: DateTime<Local>, end_record_time: DateTime<Local>, samples: AudioFrame) -> Self {
+    pub fn new(
+        start_record_time: DateTime<Local>,
+        end_record_time: DateTime<Local>,
+        samples: AudioFrame,
+    ) -> Self {
         SpeechAudioFrame {
             start_record_time,
             end_record_time,
@@ -103,24 +107,12 @@ impl AudioNode<VadAudioFrame, SpeechAudioFrame> for SpeechExtractorNode {
             tokio::spawn(async move {
                 let mut start_record_time: Option<DateTime<Local>> = None;
                 while let Some(vad_audio_frame) = receiver.recv().await {
-                    let audio_tolerance = if let Ok(audio_tolerance) = audio_tolerance.read() {
-                        *audio_tolerance
-                    } else {
-                        log_warn!(
-                            "Failed to lock tolerance.  Using default tolerance value: {}",
-                            DEFAULT_TOLERANCE
-                        );
-                        DEFAULT_TOLERANCE
-                    };
-                    let speech_threshold = if let Ok(threshold) = speech_threshold.read() {
-                        *threshold
-                    } else {
-                        log_warn!(
-                            "Failed to lock speech threshold.  Using default threshold value: {}",
-                            DEFAULT_SPEECH_THRESHOLD
-                        );
-                        DEFAULT_SPEECH_THRESHOLD
-                    };
+                    let audio_tolerance = audio_tolerance
+                        .read()
+                        .map_or(DEFAULT_TOLERANCE, |tolerance| *tolerance);
+                    let speech_threshold = speech_threshold
+                        .read()
+                        .map_or(DEFAULT_SPEECH_THRESHOLD, |threshold| *threshold);
                     let probability = vad_audio_frame.probability();
                     let samples = vad_audio_frame.samples();
                     if probability >= speech_threshold {
@@ -132,19 +124,22 @@ impl AudioNode<VadAudioFrame, SpeechAudioFrame> for SpeechExtractorNode {
                         }
                     }
                     probabilities.push_front(probability);
-                    if start_record_time.is_some() && probabilities
-                        .iter()
-                        .take(audio_tolerance)
-                        .all(|&probability| probability < speech_threshold)
+                    if start_record_time.is_some()
+                        && probabilities
+                            .iter()
+                            .take(audio_tolerance)
+                            .all(|&probability| probability < speech_threshold)
                     {
                         let speech_audio_frame = SpeechAudioFrame::new(
                             start_record_time.take().unwrap(),
                             Local::now(),
                             speech_frame.make_contiguous().to_vec(),
                         );
-                        if let Err(err) = sender.send(speech_audio_frame).await
-                        {
-                            log_error!("Reassembly node failed to send audio frame to receiver: {}", err);
+                        if let Err(err) = sender.send(speech_audio_frame).await {
+                            log_error!(
+                                "Reassembly node failed to send audio frame to receiver: {}",
+                                err
+                            );
                         }
                         speech_frame.clear();
                         probabilities.clear();

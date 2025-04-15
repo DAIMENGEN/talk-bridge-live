@@ -1,10 +1,10 @@
+use crate::app_state::DEFAULT_MICROPHONE_GAIN;
 use crate::audio::audio_node::AudioNode;
 use crate::audio::AudioFrame;
 use crate::log_error;
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
-use crate::app_state::DEFAULT_MICROPHONE_GAIN;
 
 pub struct GainNode {
     gain: Arc<RwLock<f32>>,
@@ -44,11 +44,7 @@ impl AudioNode<AudioFrame, AudioFrame> for GainNode {
             let sender = self.sender.clone();
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
-                    let gain = if let Ok(gain) = gain.read() {
-                        *gain
-                    } else {
-                        DEFAULT_MICROPHONE_GAIN
-                    };
+                    let gain = gain.read().map_or(DEFAULT_MICROPHONE_GAIN, |gain| *gain);
                     let samples = samples.iter().map(|&x| x * gain).collect();
                     if let Err(err) = sender.send(samples).await {
                         log_error!("Gain node failed to send audio frame to receiver: {}", err);

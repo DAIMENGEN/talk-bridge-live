@@ -1,10 +1,10 @@
-use std::collections::VecDeque;
 use crate::app_state::DEFAULT_SPEECH_MERGE_THRESHOLD;
 use crate::audio::audio_node::speech_extractor_node::SpeechAudioFrame;
 use crate::audio::audio_node::AudioNode;
 use crate::audio::AudioFrame;
-use crate::{log_error, log_warn};
+use crate::log_error;
 use chrono::{DateTime, Local};
+use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
@@ -51,17 +51,9 @@ impl AudioNode<SpeechAudioFrame, AudioFrame> for SpeechContextNode {
                 let mut audio_frame = VecDeque::<f32>::new();
                 let mut prev_end_record_time_option: Option<DateTime<Local>> = None;
                 while let Some(speech_audio_frame) = receiver.recv().await {
-                    let speech_merge_threshold = if let Ok(speech_merge_threshold) =
-                        speech_merge_threshold.read()
-                    {
-                        *speech_merge_threshold
-                    } else {
-                        log_warn!(
-                            "Failed to lock speech merge threshold.  Using default threshold value: {}",
-                            DEFAULT_SPEECH_MERGE_THRESHOLD
-                        );
-                        DEFAULT_SPEECH_MERGE_THRESHOLD
-                    };
+                    let speech_merge_threshold = speech_merge_threshold
+                        .read()
+                        .map_or(DEFAULT_SPEECH_MERGE_THRESHOLD, |threshold| *threshold);
                     let samples = speech_audio_frame.samples();
                     let end_record_time = speech_audio_frame.end_record_time();
                     let start_record_time = speech_audio_frame.start_record_time();
@@ -85,9 +77,11 @@ impl AudioNode<SpeechAudioFrame, AudioFrame> for SpeechContextNode {
                             prev_end_record_time_option.replace(end_record_time.clone());
                         }
                     }
-                    if let Err(err) = sender.send(audio_frame.make_contiguous().to_vec()).await
-                    {
-                        log_error!("Speech context node failed to send audio frame to receiver: {}", err);
+                    if let Err(err) = sender.send(audio_frame.make_contiguous().to_vec()).await {
+                        log_error!(
+                            "Speech context node failed to send audio frame to receiver: {}",
+                            err
+                        );
                     }
                 }
             });

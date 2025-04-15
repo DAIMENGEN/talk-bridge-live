@@ -24,15 +24,30 @@ impl SpeechAudioFrame {
         }
     }
 
-    pub fn get_start_record_time(&self) -> DateTime<Local> {
+    pub fn start_record_time(&self) -> &DateTime<Local> {
+        &self.start_record_time
+    }
+
+    #[allow(dead_code)]
+    pub fn into_start_record_time(self) -> DateTime<Local> {
         self.start_record_time
     }
 
-    pub fn get_end_record_time(&self) -> DateTime<Local> {
+    pub fn end_record_time(&self) -> &DateTime<Local> {
+        &self.end_record_time
+    }
+
+    #[allow(dead_code)]
+    pub fn into_end_record_time(self) -> DateTime<Local> {
         self.end_record_time
     }
 
-    pub fn get_samples(self) -> AudioFrame {
+    pub fn samples(&self) -> &AudioFrame {
+        &self.samples
+    }
+
+    #[allow(dead_code)]
+    pub fn into_samples(self) -> AudioFrame {
         self.samples
     }
 }

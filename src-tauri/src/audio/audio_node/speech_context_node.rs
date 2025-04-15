@@ -62,9 +62,9 @@ impl AudioNode<SpeechAudioFrame, AudioFrame> for SpeechContextNode {
                         );
                         DEFAULT_SPEECH_MERGE_THRESHOLD
                     };
-                    let end_record_time = speech_audio_frame.get_end_record_time();
-                    let start_record_time = speech_audio_frame.get_start_record_time();
-                    let samples = speech_audio_frame.get_samples();
+                    let samples = speech_audio_frame.samples();
+                    let end_record_time = speech_audio_frame.end_record_time();
+                    let start_record_time = speech_audio_frame.start_record_time();
                     match prev_end_record_time_option {
                         Some(prev_end_record_time) => {
                             let duration =
@@ -72,17 +72,17 @@ impl AudioNode<SpeechAudioFrame, AudioFrame> for SpeechContextNode {
                             let duration_millis = duration.num_milliseconds();
                             if duration_millis > (speech_merge_threshold * 1000f32) as i64 {
                                 audio_frame.clear();
-                                prev_end_record_time_option.replace(end_record_time);
+                                prev_end_record_time_option.replace(end_record_time.clone());
                             }
                             for sample in samples {
-                                audio_frame.push_front(sample);
+                                audio_frame.push_front(sample.clone());
                             }
                         }
                         None => {
                             for sample in samples {
-                                audio_frame.push_front(sample);
+                                audio_frame.push_front(sample.clone());
                             }
-                            prev_end_record_time_option.replace(end_record_time);
+                            prev_end_record_time_option.replace(end_record_time.clone());
                         }
                     }
                     if let Err(err) = sender.send(audio_frame.make_contiguous().to_vec()).await

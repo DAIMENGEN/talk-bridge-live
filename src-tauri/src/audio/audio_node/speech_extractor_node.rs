@@ -121,14 +121,14 @@ impl AudioNode<VadAudioFrame, SpeechAudioFrame> for SpeechExtractorNode {
                         );
                         DEFAULT_SPEECH_THRESHOLD
                     };
-                    let probability = vad_audio_frame.get_probability();
-                    let samples = vad_audio_frame.get_samples();
+                    let probability = vad_audio_frame.probability();
+                    let samples = vad_audio_frame.samples();
                     if probability >= speech_threshold {
                         if start_record_time.is_none() {
                             start_record_time.replace(Local::now());
                         }
                         for sample in samples {
-                            speech_frame.push_front(sample);
+                            speech_frame.push_front(sample.clone());
                         }
                     }
                     probabilities.push_front(probability);

@@ -60,7 +60,7 @@ pub async fn human_voice_detection(
             gain_node.set_gain(microphone_gain);
             tokio::spawn(async move {
                 while let Some(vad_audio_frame) = receiver.recv().await {
-                    let probability = vad_audio_frame.get_probability();
+                    let probability = vad_audio_frame.probability();
                     // let samples = vad_audio_frame.get_samples();
                     if let Err(err) = app.emit(EVENT_NAME, HumanVoiceProbability { probability }) {
                         log_error!("Failed to send the detected human voice probability to the frontend: {}", err);

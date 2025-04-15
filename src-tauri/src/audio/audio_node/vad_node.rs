@@ -18,11 +18,16 @@ impl VadAudioFrame {
         }
     }
 
-    pub fn get_probability(&self) -> f32 {
+    pub fn probability(&self) -> f32 {
         self.probability
     }
 
-    pub fn get_samples(self) -> AudioFrame {
+    pub fn samples(&self) -> &AudioFrame {
+        &self.samples
+    }
+
+    #[allow(dead_code)]
+    pub fn into_samples(self) -> AudioFrame {
         self.samples
     }
 }

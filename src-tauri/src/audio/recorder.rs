@@ -23,12 +23,14 @@ pub async fn start_recording(
             let mut vad_node = audio_context.create_vad_node();
             let mut speech_extractor_node = audio_context.create_speech_extractor_node();
             let mut speech_assembler_node = audio_context.create_speech_assembler_node();
+            let mut wav_writer_node = audio_context.create_wav_writer_node();
             let mut speech_translator_node = audio_context.create_speech_translator_node();
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);
             let receiver = speech_extractor_node.connect_input_source(receiver);
             let receiver = speech_assembler_node.connect_input_source(receiver);
+            let receiver = wav_writer_node.connect_input_source(receiver);
             let mut receiver = speech_translator_node.connect_input_source(receiver);
             let speaker = app_state.get_speaker();
             let tolerance = app_state.get_audio_tolerance();
@@ -47,6 +49,7 @@ pub async fn start_recording(
             audio_context.connect_vad_node(vad_node);
             audio_context.connect_speech_extractor_node(speech_extractor_node);
             audio_context.connect_speech_assembler_node(speech_assembler_node);
+            audio_context.connect_wav_writer_node(wav_writer_node);
             audio_context.connect_speech_translator_node(speech_translator_node);
             audio_context.start();
             tokio::spawn(async move {

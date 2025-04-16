@@ -11,6 +11,7 @@ pub mod vad_node;
 pub mod speech_extractor_node;
 pub mod speech_assembler_node;
 pub mod speech_translator_node;
+pub mod wav_writer_node;
 
 pub trait AudioNode<Input: Send, Output: Send>: Send {
     fn connect_input_source(&mut self, input_source: Receiver<Input>) -> Receiver<Output>;
@@ -24,6 +25,7 @@ pub enum AudioNodeEnum {
     SpeechExtractorNode(Box<dyn AudioNode<VADResult, SpeechExtractorResult>>),
     SpeechAssemblerNode(Box<dyn AudioNode<SpeechExtractorResult, SpeechAssemblerResult>>),
     SpeechTranslatorNode(Box<dyn AudioNode<SpeechAssemblerResult, SpeechTranslatorResult>>),
+    WavWriterNode(Box<dyn AudioNode<SpeechAssemblerResult, SpeechAssemblerResult>>),
 }
 
 impl AudioNodeEnum {
@@ -35,6 +37,7 @@ impl AudioNodeEnum {
             AudioNodeEnum::SpeechExtractorNode(node) => node.process(),
             AudioNodeEnum::SpeechAssemblerNode(node) => node.process(),
             AudioNodeEnum::SpeechTranslatorNode(node) => node.process(),
+            AudioNodeEnum::WavWriterNode(node) => node.process(),
         }
     }
 }

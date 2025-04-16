@@ -1,5 +1,5 @@
 use crate::audio::audio_node::AudioNode;
-use crate::audio::AudioFrame;
+use crate::audio::AudioBlock;
 use crate::log_error;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -7,11 +7,11 @@ use voice_activity_detector::VoiceActivityDetector;
 
 pub struct VADResult {
     probability: f32,
-    samples: AudioFrame,
+    samples: AudioBlock,
 }
 
 impl VADResult {
-    pub fn new(probability: f32, samples: AudioFrame) -> Self {
+    pub fn new(probability: f32, samples: AudioBlock) -> Self {
         VADResult {
             probability,
             samples,
@@ -22,12 +22,12 @@ impl VADResult {
         self.probability
     }
 
-    pub fn samples(&self) -> &AudioFrame {
+    pub fn samples(&self) -> &AudioBlock {
         &self.samples
     }
 
     #[allow(dead_code)]
-    pub fn into_samples(self) -> AudioFrame {
+    pub fn into_samples(self) -> AudioBlock {
         self.samples
     }
 }
@@ -36,7 +36,7 @@ pub struct VadNode {
     chunk_size: usize,
     sample_rate: u32,
     sender: Sender<VADResult>,
-    input_source: Option<Receiver<AudioFrame>>,
+    input_source: Option<Receiver<AudioBlock>>,
     output_source: Option<Receiver<VADResult>>,
 }
 
@@ -53,10 +53,10 @@ impl VadNode {
     }
 }
 
-impl AudioNode<AudioFrame, VADResult> for VadNode {
+impl AudioNode<AudioBlock, VADResult> for VadNode {
     fn connect_input_source(
         &mut self,
-        input_source: Receiver<AudioFrame>,
+        input_source: Receiver<AudioBlock>,
     ) -> Receiver<VADResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
@@ -83,10 +83,10 @@ impl AudioNode<AudioFrame, VADResult> for VadNode {
             };
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
-                    let mut audio_frame = vec![0f32; chunk_size];
+                    let mut audio_block = vec![0f32; chunk_size];
                     let len = samples.len().min(chunk_size);
-                    audio_frame[..len].copy_from_slice(&samples[..len]);
-                    let probability = vad.predict(audio_frame);
+                    audio_block[..len].copy_from_slice(&samples[..len]);
+                    let probability = vad.predict(audio_block);
                     if let Err(err) = sender.send(VADResult::new(probability, samples)).await {
                         log_error!("Vad node failed to send audio frame to receiver: {}", err);
                     }

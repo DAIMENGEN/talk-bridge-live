@@ -1,6 +1,6 @@
 use crate::audio::audio_node::speech_extractor_node::SpeechExtractorResult;
 use crate::audio::audio_node::vad_node::VADResult;
-use crate::audio::AudioFrame;
+use crate::audio::AudioBlock;
 use tokio::sync::mpsc::Receiver;
 use crate::audio::audio_node::speech_assembler_node::SpeechAssemblerResult;
 use crate::audio::audio_node::speech_translator_node::SpeechTranslatorResult;
@@ -19,9 +19,9 @@ pub trait AudioNode<Input: Send, Output: Send>: Send {
 }
 
 pub enum AudioNodeEnum {
-    SourceNode(Box<dyn AudioNode<AudioFrame, AudioFrame>>),
-    GainNode(Box<dyn AudioNode<AudioFrame, AudioFrame>>),
-    VadNode(Box<dyn AudioNode<AudioFrame, VADResult>>),
+    SourceNode(Box<dyn AudioNode<AudioBlock, AudioBlock>>),
+    GainNode(Box<dyn AudioNode<AudioBlock, AudioBlock>>),
+    VadNode(Box<dyn AudioNode<AudioBlock, VADResult>>),
     SpeechExtractorNode(Box<dyn AudioNode<VADResult, SpeechExtractorResult>>),
     SpeechAssemblerNode(Box<dyn AudioNode<SpeechExtractorResult, SpeechAssemblerResult>>),
     SpeechTranslatorNode(Box<dyn AudioNode<SpeechAssemblerResult, SpeechTranslatorResult>>),

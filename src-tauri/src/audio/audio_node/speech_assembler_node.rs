@@ -1,7 +1,7 @@
 use crate::app_state::DEFAULT_SPEECH_MERGE_THRESHOLD;
 use crate::audio::audio_node::speech_extractor_node::SpeechExtractorResult;
 use crate::audio::audio_node::AudioNode;
-use crate::audio::AudioFrame;
+use crate::audio::{AudioBlock, AudioSample};
 use crate::log_error;
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
@@ -11,14 +11,14 @@ use tokio::sync::mpsc::{channel, Receiver, Sender};
 pub struct SpeechAssemblerResult {
     start_record_time: DateTime<Local>,
     end_record_time: DateTime<Local>,
-    samples: AudioFrame,
+    samples: AudioBlock,
 }
 
 impl SpeechAssemblerResult {
     pub fn new(
         start_record_time: DateTime<Local>,
         end_record_time: DateTime<Local>,
-        samples: AudioFrame,
+        samples: AudioBlock,
     ) -> Self {
         SpeechAssemblerResult {
             start_record_time,
@@ -45,12 +45,12 @@ impl SpeechAssemblerResult {
         self.end_record_time
     }
 
-    pub fn samples(&self) -> &AudioFrame {
+    pub fn samples(&self) -> &AudioBlock {
         &self.samples
     }
 
     #[allow(dead_code)]
-    pub fn into_samples(self) -> AudioFrame {
+    pub fn into_samples(self) -> AudioBlock {
         self.samples
     }
 }
@@ -95,7 +95,7 @@ impl AudioNode<SpeechExtractorResult, SpeechAssemblerResult> for SpeechAssembler
             let sender = self.sender.clone();
             let speech_merge_threshold = self.speech_merge_threshold.clone();
             tokio::spawn(async move {
-                let mut audio_frame = VecDeque::<f32>::new();
+                let mut audio_block = VecDeque::<AudioSample>::new();
                 let mut start_record_time_option: Option<DateTime<Local>> = None;
                 let mut end_record_time_option: Option<DateTime<Local>> = None;
                 while let Some(result) = receiver.recv().await {
@@ -113,21 +113,21 @@ impl AudioNode<SpeechExtractorResult, SpeechAssemblerResult> for SpeechAssembler
                             let duration = current_start_record_time.signed_duration_since(prev_end_record_time);
                             let duration_millis = duration.num_milliseconds();
                             if duration_millis > (speech_merge_threshold * 1000f32) as i64 {
-                                audio_frame.clear();
+                                audio_block.clear();
                                 start_record_time_option.replace(current_start_record_time.clone());
                             }
-                            audio_frame.extend(samples);
+                            audio_block.extend(samples);
                             end_record_time_option.replace(current_end_record_time.clone());
                         }
                         None => {
-                            audio_frame.extend(samples);
+                            audio_block.extend(samples);
                             end_record_time_option.replace(current_end_record_time.clone());
                         }
                     }
                     let speech_assembler_result = SpeechAssemblerResult::new(
                        start_record_time_option.unwrap(),
                        end_record_time_option.unwrap(),
-                       audio_frame.make_contiguous().to_vec(),
+                       audio_block.make_contiguous().to_vec(),
                     );
                     if let Err(err) = sender.send(speech_assembler_result).await {
                         log_error!(

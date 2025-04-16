@@ -1,7 +1,7 @@
 use crate::app_state::{DEFAULT_SPEECH_THRESHOLD, DEFAULT_TOLERANCE};
 use crate::audio::audio_node::vad_node::VADResult;
 use crate::audio::audio_node::AudioNode;
-use crate::audio::AudioFrame;
+use crate::audio::{AudioBlock, AudioSample};
 use crate::log_error;
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
@@ -12,14 +12,14 @@ use tokio::sync::mpsc::{Receiver, Sender};
 pub struct SpeechExtractorResult {
     start_record_time: DateTime<Local>,
     end_record_time: DateTime<Local>,
-    samples: AudioFrame,
+    samples: AudioBlock,
 }
 
 impl SpeechExtractorResult {
     pub fn new(
         start_record_time: DateTime<Local>,
         end_record_time: DateTime<Local>,
-        samples: AudioFrame,
+        samples: AudioBlock,
     ) -> Self {
         SpeechExtractorResult {
             start_record_time,
@@ -46,12 +46,12 @@ impl SpeechExtractorResult {
         self.end_record_time
     }
 
-    pub fn samples(&self) -> &AudioFrame {
+    pub fn samples(&self) -> &AudioBlock {
         &self.samples
     }
 
     #[allow(dead_code)]
-    pub fn into_samples(self) -> AudioFrame {
+    pub fn into_samples(self) -> AudioBlock {
         self.samples
     }
 }
@@ -100,8 +100,8 @@ impl AudioNode<VADResult, SpeechExtractorResult> for SpeechExtractorNode {
     fn process(&mut self) {
         if let Some(mut receiver) = self.input_source.take() {
             let sender = self.sender.clone();
-            let mut speech_frame = VecDeque::<f32>::new();
             let mut probabilities = VecDeque::<f32>::new();
+            let mut speech_audio_block = VecDeque::<AudioSample>::new();
             let audio_tolerance = self.audio_tolerance.clone();
             let speech_threshold = self.speech_threshold.clone();
             tokio::spawn(async move {
@@ -119,7 +119,7 @@ impl AudioNode<VADResult, SpeechExtractorResult> for SpeechExtractorNode {
                         if start_record_time.is_none() {
                             start_record_time.replace(Local::now());
                         }
-                        speech_frame.extend(samples);
+                        speech_audio_block.extend(samples);
                     }
                     probabilities.push_front(probability);
                     if start_record_time.is_some()
@@ -128,19 +128,19 @@ impl AudioNode<VADResult, SpeechExtractorResult> for SpeechExtractorNode {
                             .take(audio_tolerance)
                             .all(|&probability| probability < speech_threshold)
                     {
-                        let speech_audio_frame = SpeechExtractorResult::new(
+                        let speech_extractor_result = SpeechExtractorResult::new(
                             start_record_time.take().unwrap(),
                             Local::now(),
-                            speech_frame.make_contiguous().to_vec(),
+                            speech_audio_block.make_contiguous().to_vec(),
                         );
-                        if let Err(err) = sender.send(speech_audio_frame).await {
+                        if let Err(err) = sender.send(speech_extractor_result).await {
                             log_error!(
                                 "Reassembly node failed to send audio frame to receiver: {}",
                                 err
                             );
                         }
-                        speech_frame.clear();
                         probabilities.clear();
+                        speech_audio_block.clear();
                     }
                 }
             });

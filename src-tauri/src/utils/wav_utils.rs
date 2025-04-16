@@ -68,6 +68,7 @@ pub fn save_wav_file_async(file_path: PathBuf, samples: &[f32]) {
     });
 }
 
+#[allow(dead_code)]
 pub fn convert_f32_to_wav_data(samples: &[f32]) -> Result<Vec<u8>, Box<dyn Error>> {
     let wav_data: Vec<u8> = Vec::new();
     let wav_spec = create_wav_spec();

@@ -119,9 +119,7 @@ impl AudioNode<VADResult, SpeechExtractorResult> for SpeechExtractorNode {
                         if start_record_time.is_none() {
                             start_record_time.replace(Local::now());
                         }
-                        for sample in samples {
-                            speech_frame.push_front(sample.clone());
-                        }
+                        speech_frame.extend(samples);
                     }
                     probabilities.push_front(probability);
                     if start_record_time.is_some()

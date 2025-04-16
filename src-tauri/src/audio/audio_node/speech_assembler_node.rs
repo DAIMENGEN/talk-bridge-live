@@ -116,15 +116,11 @@ impl AudioNode<SpeechExtractorResult, SpeechAssemblerResult> for SpeechAssembler
                                 audio_frame.clear();
                                 start_record_time_option.replace(current_start_record_time.clone());
                             }
-                            for sample in samples {
-                                audio_frame.push_front(sample.clone());
-                            }
+                            audio_frame.extend(samples);
                             end_record_time_option.replace(current_end_record_time.clone());
                         }
                         None => {
-                            for sample in samples {
-                                audio_frame.push_front(sample.clone());
-                            }
+                            audio_frame.extend(samples);
                             end_record_time_option.replace(current_end_record_time.clone());
                         }
                     }

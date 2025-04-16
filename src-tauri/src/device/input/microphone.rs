@@ -72,10 +72,7 @@ impl Microphone {
                                     let num_samples = output[0].len();
                                     let mut mono_output: Vec<f32> = Vec::with_capacity(num_samples);
                                     for i in 0..num_samples {
-                                        let mut sum = 0.0;
-                                        for channel in &output {
-                                            sum += channel[i];
-                                        }
+                                        let sum: f32 = output.iter().map(|channel| channel[i]).sum();
                                         mono_output.push(sum / num_channels as f32);
                                     }
                                     match tx.blocking_send(mono_output) {

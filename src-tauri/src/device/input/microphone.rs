@@ -2,7 +2,8 @@ use crate::silero_vad::{VadSampleRate, VadSampleSize};
 use crate::{log_error, log_info};
 use cpal::traits::{DeviceTrait, StreamTrait};
 use cpal::{BufferSize, Device, SampleFormat, StreamConfig};
-use rubato::{FftFixedInOut, Resampler};
+use dasp::interpolate::linear::Linear;
+use dasp::{signal, Signal};
 use std::error::Error;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::Receiver;
@@ -31,63 +32,23 @@ impl Microphone {
         let original_sample_rate = self.get_original_sample_rate() as usize;
         let target_sample_rate = self.sample_rate as usize;
         let output_frames_size = self.output_frames_size as usize;
+        let min_frame_size = output_frames_size * (original_sample_rate / target_sample_rate);
         let microphone_name = self.get_name();
         let sample_format = self.get_original_sample_format();
         let (tx, rx) = mpsc::channel::<Vec<f32>>(100);
-        let chunk_size_in = ((output_frames_size as f64 * original_sample_rate as f64) / target_sample_rate as f64).ceil() as usize;
-        let mut resampler = match FftFixedInOut::<f32>::new(
-            original_sample_rate,
-            target_sample_rate,
-            chunk_size_in,
-            channels
-        ) {
-            Ok(resampler) => resampler,
-            Err(err) => {
-                log_error!("Failed to create resampler: {}", err);
-                panic!("Failed to create resampler: {}", err);
-            }
-        };
         let mut input_buffer: Vec<f32> = vec![];
         match sample_format {
             SampleFormat::F32 => {
                 let stream = self.device.build_input_stream(
                     &config.into(),
                     move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                        input_buffer.extend_from_slice(data);
-                        if input_buffer.len() >= channels * resampler.input_frames_next() {
-                            // Separate channels
-                            let mut separated_channels = vec![Vec::new(); channels];
-                            for frame in input_buffer.chunks(channels) {
-                                for (index, sample) in frame.iter().enumerate() {
-                                    separated_channels[index].push(*sample);
-                                }
-                            }
-                            // Resample to 16000 Hz
-                            let output_length = resampler.output_frames_next();
-                            let mut output: Vec<Vec<f32>> = vec![vec![0.0; output_length]; channels];
-                            match resampler.process_into_buffer(&separated_channels, &mut output, None) {
-                                Ok(_) => {
-                                    // Convert to mono by averaging channels
-                                    let num_channels = output.len();
-                                    let num_samples = output[0].len();
-                                    let mut mono_output: Vec<f32> = Vec::with_capacity(num_samples);
-                                    for i in 0..num_samples {
-                                        let sum: f32 = output.iter().map(|channel| channel[i]).sum();
-                                        mono_output.push(sum / num_channels as f32);
-                                    }
-                                    match tx.blocking_send(mono_output) {
-                                        Ok(_) => {
-                                            input_buffer.clear();
-                                        }
-                                        Err(err) => {
-                                            log_error!("Microphone send samples error: {}", err);
-                                        }
-                                    }
-                                }
-                                Err(err) => {
-                                    log_error!("Resampling error: {}", err);
-                                    panic!("Resampling error: {}", err);
-                                }
+                        let samples = Microphone::stereo_to_mono(channels, data);
+                        input_buffer.extend(samples);
+                        if input_buffer.len() >= min_frame_size {
+                            let samples = input_buffer.drain(0..min_frame_size).collect();
+                            let samples = Microphone::resample(original_sample_rate, target_sample_rate, samples);
+                            if let Err(err) = tx.blocking_send(samples) {
+                                log_error!("Microphone send samples error: {}", err);
                             }
                         }
                     },
@@ -155,7 +116,6 @@ impl Microphone {
             }
         }
     }
-
     pub fn get_name(&self) -> String {
         self.device.name().unwrap_or_else(|_| {
             log_error!("Failed to get Microphone name.");
@@ -208,6 +168,30 @@ impl Microphone {
                 panic!("Failed to get Microphone sample format.");
             })
             .sample_format()
+    }
+    pub fn stereo_to_mono(channels: usize, samples: &[f32]) -> Vec<f32> {
+        if channels == 1 {
+            samples.to_vec()
+        } else {
+            samples.chunks_exact(channels)
+                .map(|frame| frame.iter().sum::<f32>() / channels as f32)
+                .collect()
+        }
+    }
+    pub fn resample(original_sample_rate: usize, target_sample_rate: usize, samples: Vec<f32>) -> Vec<f32> {
+        if original_sample_rate != target_sample_rate {
+            let target_size = samples.len() * target_sample_rate / original_sample_rate;
+            let interpolator = Linear::new(samples[0], samples[1]);
+            let source = signal::from_iter(samples.iter().cloned());
+            let samples = source.from_hz_to_hz(
+                interpolator,
+                original_sample_rate as f64,
+                target_sample_rate as f64,
+            );
+            samples.take(target_size).collect()
+        } else {
+            samples.to_vec()
+        }
     }
 }
 

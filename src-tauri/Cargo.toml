@@ -23,12 +23,12 @@ cpal = "0.15.3"
 hound = "3.5.1"
 whoami = "1.6.0"
 serde = "1.0.219"
-rubato = "0.16.2"
 chrono = "0.4.40"
 tokio-macros = "2.5.0"
 tauri-plugin-opener = "2"
 tauri-plugin-log = "2.3.1"
 voice_activity_detector = "0.2.0"
+dasp = { version = "0.11", features = ["all"] }
 tauri = { version = "2", features = ["devtools"] }
 tokio = { version = "1.44.1", features = ["full"] }
 

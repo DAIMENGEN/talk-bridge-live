@@ -83,10 +83,7 @@ impl AudioNode<AudioBlock, VADResult> for VadNode {
             };
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
-                    let mut audio_block = vec![0f32; chunk_size];
-                    let len = samples.len().min(chunk_size);
-                    audio_block[..len].copy_from_slice(&samples[..len]);
-                    let probability = vad.predict(audio_block);
+                    let probability = vad.predict(samples.clone());
                     if let Err(err) = sender.send(VADResult::new(probability, samples)).await {
                         log_error!("Vad node failed to send audio frame to receiver: {}", err);
                     }

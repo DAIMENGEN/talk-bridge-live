@@ -108,22 +108,16 @@ impl AudioNode<SpeechExtractorResult, SpeechAssemblerResult> for SpeechAssembler
                     if start_record_time_option.is_none() {
                         start_record_time_option.replace(current_start_record_time.clone());
                     }
-                    match end_record_time_option {
-                        Some(prev_end_record_time) => {
-                            let duration = current_start_record_time.signed_duration_since(prev_end_record_time);
-                            let duration_millis = duration.num_milliseconds();
-                            if duration_millis > (speech_merge_threshold * 1000f32) as i64 {
-                                audio_block.clear();
-                                start_record_time_option.replace(current_start_record_time.clone());
-                            }
-                            audio_block.extend(samples);
-                            end_record_time_option.replace(current_end_record_time.clone());
-                        }
-                        None => {
-                            audio_block.extend(samples);
-                            end_record_time_option.replace(current_end_record_time.clone());
+                    if let Some(prev_end_record_time) = end_record_time_option {
+                        let duration = current_start_record_time.signed_duration_since(prev_end_record_time);
+                        let duration_millis = duration.num_milliseconds();
+                        if duration_millis > (speech_merge_threshold * 1000f32) as i64 {
+                            audio_block.clear();
+                            start_record_time_option.replace(current_start_record_time.clone());
                         }
                     }
+                    audio_block.extend(samples);
+                    end_record_time_option.replace(current_end_record_time.clone());
                     let speech_assembler_result = SpeechAssemblerResult::new(
                        start_record_time_option.unwrap(),
                        end_record_time_option.unwrap(),

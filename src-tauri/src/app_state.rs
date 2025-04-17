@@ -13,6 +13,7 @@ pub const DEFAULT_SPEECH_MERGE_THRESHOLD: f32 = 0.5;
 pub struct AppState {
     speaker: Arc<RwLock<String>>,
     meeting_room: Arc<RwLock<String>>,
+    grpc_address: Arc<RwLock<String>>,
     audio_tolerance: Arc<RwLock<usize>>,
     microphone_gain: Arc<RwLock<f32>>,
     speech_threshold: Arc<RwLock<f32>>,
@@ -26,6 +27,7 @@ impl AppState {
         AppState {
             speaker: Arc::new(RwLock::new(whoami::username())),
             meeting_room: Arc::new(RwLock::new(whoami::fallible::hostname().unwrap_or(whoami::username()))),
+            grpc_address: Arc::new(RwLock::new("127.0.0.1:50051".to_string())),
             audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             microphone_gain: Arc::new(RwLock::new(DEFAULT_MICROPHONE_GAIN)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
@@ -50,6 +52,15 @@ impl AppState {
             .write()
             .map_err(|err| format!("Failed to lock meeting room: {}", err))?;
         *meeting_room_lock = meeting_room;
+        Ok(true)
+    }
+
+    pub fn set_grpc_address(&self, grpc_address: String) -> Result<bool, String> {
+        let mut grpc_address_lock = self
+            .grpc_address
+            .write()
+            .map_err(|err| format!("Failed to lock grpc server address: {}", err))?;
+        *grpc_address_lock = grpc_address;
         Ok(true)
     }
 
@@ -118,6 +129,10 @@ impl AppState {
         self.meeting_room.clone()
     }
 
+    pub fn get_grpc_address(&self) -> Arc<RwLock<String>> {
+        self.grpc_address.clone()
+    }
+
     pub fn get_audio_tolerance(&self) -> Arc<RwLock<usize>> {
         self.audio_tolerance.clone()
     }
@@ -151,6 +166,11 @@ pub fn set_speaker(app_state: State<'_, AppState>, speaker: String) -> Result<bo
 #[tauri::command(rename_all = "snake_case")]
 pub fn set_meeting_room(app_state: State<'_, AppState>, meeting_room: String) -> Result<bool, String> {
     app_state.set_meeting_room(meeting_room)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn set_grpc_address(app_state: State<'_, AppState>, grpc_address: String) -> Result<bool, String> {
+    app_state.set_grpc_address(grpc_address)
 }
 
 #[tauri::command(rename_all = "snake_case")]

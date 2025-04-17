@@ -69,17 +69,29 @@ pub fn save_wav_file_async(file_path: PathBuf, samples: &[f32]) {
 }
 
 #[allow(dead_code)]
-pub fn convert_f32_to_wav_data(samples: &[f32]) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn encode_to_wav_bytes(samples: &[f32]) -> Vec<u8> {
     let wav_data: Vec<u8> = Vec::new();
     let wav_spec = create_wav_spec();
     let mut cursor = Cursor::new(wav_data);
     {
-        let mut writer = WavWriter::new(&mut cursor, wav_spec)?;
+        let mut writer = match WavWriter::new(&mut cursor, wav_spec) {
+            Ok(writer) => writer,
+            Err(err) => {
+                log_error!("Failed to create WavWriter: {}", err);
+                panic!("Failed to create WavWriter: {}", err);
+            }
+        };
         for &sample in samples {
             let int_sample = f32_to_i16(sample);
-            writer.write_sample(int_sample)?;
+            if let Err(err) = writer.write_sample(int_sample) {
+                log_error!("Failed to write sample to WavWriter: {}", err);
+                panic!("Failed to write sample to WavWriter: {}", err);
+            }
         }
-        writer.flush()?;
+        if let Err(err) = writer.finalize() {
+            log_error!("Failed to finalize WavWriter: {}", err);
+            panic!("Failed to finalize WavWriter: {}", err);
+        }
     }
-    Ok(cursor.into_inner())
+    cursor.into_inner()
 }

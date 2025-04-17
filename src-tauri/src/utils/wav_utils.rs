@@ -1,7 +1,6 @@
 use crate::log_error;
 use crate::silero_vad::VadSampleRate;
 use hound::{SampleFormat, WavSpec, WavWriter};
-use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::{BufWriter, Cursor};

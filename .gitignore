@@ -30,3 +30,6 @@ Cargo.lock
 src-wasm/bin/
 pkg/
 wasm-pack.log
+
+# Grpc
+*/protos_gen

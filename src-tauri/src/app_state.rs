@@ -27,7 +27,7 @@ impl AppState {
         AppState {
             speaker: Arc::new(RwLock::new(whoami::username())),
             meeting_room: Arc::new(RwLock::new(whoami::fallible::hostname().unwrap_or(whoami::username()))),
-            grpc_address: Arc::new(RwLock::new("127.0.0.1:50051".to_string())),
+            grpc_address: Arc::new(RwLock::new("http://10.150.115.103:50051".to_string())),
             audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             microphone_gain: Arc::new(RwLock::new(DEFAULT_MICROPHONE_GAIN)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),

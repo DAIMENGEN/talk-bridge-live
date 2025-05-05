@@ -1,5 +1,6 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
+use std::path::PathBuf;
 
 fn main() {
     let proto_files = vec!["chat.proto"];
@@ -14,6 +15,8 @@ fn main() {
     }
     println!("Preparing to compile proto files: {:?}", proto_files);
     println!("Output directory: {}", out_dir_str);
+    let protoc_path = PathBuf::from("../grpc/protoc/protoc-3.20.0-win64/bin/protoc.exe");
+    std::env::set_var("PROTOC", protoc_path);
     tonic_build::configure()
         .build_server(true)
         .out_dir(&out_dir_str)

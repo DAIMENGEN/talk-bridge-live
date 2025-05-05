@@ -5,8 +5,9 @@ mod logger;
 mod silero_vad;
 mod utils;
 mod protos_gen;
+mod grpc_client;
 
-use crate::app_state::{set_microphone_gain, set_speech_threshold, set_audio_tolerance, AppState, set_speech_merge_threshold, set_speaker, set_meeting_room, set_grpc_address};
+use crate::app_state::{set_microphone_gain, set_speech_threshold, set_audio_tolerance, AppState, set_speech_merge_threshold, set_speaker, set_meeting_room, set_asr_service_url};
 use crate::audio::recorder::{start_recording, stop_recording};
 use crate::device::device_manager::{
     human_voice_detection, list_microphone_names, list_speaker_names,
@@ -40,8 +41,8 @@ pub fn run() {
             stop_recording,
             start_recording,
             set_meeting_room,
-            set_grpc_address,
             list_speaker_names,
+            set_asr_service_url,
             set_audio_tolerance,
             set_microphone_gain,
             set_speech_threshold,

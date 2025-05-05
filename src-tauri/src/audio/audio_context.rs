@@ -93,8 +93,8 @@ impl AudioContext {
         SpeechAssemblerNode::new(1024)
     }
 
-    pub fn create_speech_translator_node(&self) -> SpeechTranslatorNode {
-        SpeechTranslatorNode::new(1024)
+    pub fn create_speech_translator_node(&self, asr_service_url: String) -> SpeechTranslatorNode {
+        SpeechTranslatorNode::new(1024, asr_service_url)
     }
 
     pub fn create_wav_writer_node(&self) -> WavWriterNode {

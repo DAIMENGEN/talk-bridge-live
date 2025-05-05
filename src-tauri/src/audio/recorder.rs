@@ -24,7 +24,9 @@ pub async fn start_recording(
             let mut speech_extractor_node = audio_context.create_speech_extractor_node();
             let mut speech_assembler_node = audio_context.create_speech_assembler_node();
             let mut wav_writer_node = audio_context.create_wav_writer_node();
-            let mut speech_translator_node = audio_context.create_speech_translator_node();
+            let asr_service_url = app_state.get_asr_service_url();
+            let asr_service_url = asr_service_url.read().map_err(|err| format!("Failed to read ASR service URL: {}", err))?.clone();
+            let mut speech_translator_node = audio_context.create_speech_translator_node(asr_service_url);
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
             let receiver = vad_node.connect_input_source(receiver);

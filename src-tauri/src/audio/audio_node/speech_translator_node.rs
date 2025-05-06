@@ -1,28 +1,79 @@
 use crate::audio::audio_node::speech_assembler_node::SpeechAssemblerResult;
 use crate::audio::audio_node::AudioNode;
-use crate::grpc_client::speech_translator_client::SpeechTranslatorClient;
 use crate::log_error;
+use crate::protos_gen::protos::chat_service_client::ChatServiceClient;
+use crate::protos_gen::protos::{ChatRequest, ChatRespond, MeetingRoom};
 use crate::utils::wav_utils::encode_to_wav_bytes;
+use chrono::{DateTime, Local};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
+use tonic::Request;
 
 pub struct SpeechTranslatorResult {
-    text: String,
+    speaker: String,
+    datetime: DateTime<Local>,
+    chinese_text: String,
+    english_text: String,
+    japanese_text: String,
+    german_text: String,
+    spanish_text: String,
+    korean_text: String
 }
 
 impl SpeechTranslatorResult {
-    pub fn new(text: String) -> Self {
-        SpeechTranslatorResult { text }
+    pub fn new(response: ChatRespond) -> Self {
+        let datetime = DateTime::from_timestamp(response.start, 0).unwrap();
+        let datetime = datetime.with_timezone(&Local);
+        Self {
+            speaker: response.speaker,
+            datetime,
+            chinese_text: "".to_string(),
+            english_text: "".to_string(),
+            japanese_text: "".to_string(),
+            german_text: "".to_string(),
+            spanish_text: "".to_string(),
+            korean_text: "".to_string()
+        }
     }
 
     #[allow(dead_code)]
-    pub fn text(&self) -> &String {
-        &self.text
+    pub fn speaker(&self) -> &str {
+        &self.speaker
     }
 
     #[allow(dead_code)]
-    pub fn into_text(self) -> String {
-        self.text
+    pub fn datetime(&self) -> &DateTime<Local> {
+        &self.datetime
+    }
+
+    #[allow(dead_code)]
+    pub fn chinese_text(&self) -> &str {
+        &self.chinese_text
+    }
+
+    #[allow(dead_code)]
+    pub fn english_text(&self) -> &str {
+        &self.english_text
+    }
+
+    #[allow(dead_code)]
+    pub fn japanese_text(&self) -> &str {
+        &self.japanese_text
+    }
+
+    #[allow(dead_code)]
+    pub fn german_text(&self) -> &str {
+        &self.german_text
+    }
+
+    #[allow(dead_code)]
+    pub fn spanish_text(&self) -> &str {
+        &self.spanish_text
+    }
+
+    #[allow(dead_code)]
+    pub fn korean_text(&self) -> &str {
+        &self.korean_text
     }
 }
 
@@ -59,6 +110,70 @@ impl SpeechTranslatorNode {
     pub fn set_meeting_room(&mut self, meeting_room: Arc<RwLock<String>>) {
         self.meeting_room = meeting_room;
     }
+
+    async fn send_request(
+        asr_service_url: String,
+        speaker: String,
+        meeting_room: String,
+        sample_rate: usize,
+        audio_bytes: Vec<u8>,
+    ) {
+        if let Ok(mut translator_client) = ChatServiceClient::connect(asr_service_url).await {
+            let request = Request::new(ChatRequest {
+                speaker: speaker.clone(),
+                meeting_room: meeting_room.clone(),
+                start: 0,
+                end: 0,
+                sample_rate: sample_rate as i64,
+                audio_bytes,
+                target_language: vec!["cmn".to_string(), "eng".to_string(), "jpn".to_string()],
+                tag: "".to_string(),
+                tag64: 1,
+            });
+            if let Err(err) = translator_client.chat_send(request).await {
+                log_error!(
+                    "Failed to send request: {} | speaker: {} | meeting_room: {}",
+                    err,
+                    speaker,
+                    meeting_room
+                );
+            }
+        }
+    }
+
+    async fn receive_response(
+        asr_service_url: String,
+        meeting_room: String,
+        password: String,
+        forward: Sender<SpeechTranslatorResult>,
+    ) {
+        if let Ok(mut translator_client) = ChatServiceClient::connect(asr_service_url).await {
+            let request = Request::new(MeetingRoom {
+                meeting_room,
+                password
+            });
+            match translator_client.chat_listen(request).await {
+                Ok(response) => {
+                    let mut stream = response.into_inner();
+                    while let Some(result) = stream.message().await.transpose() {
+                        match result {
+                            Ok(response) => {
+                                if let Err(err) = forward.send(SpeechTranslatorResult::new(response)).await {
+                                    log_error!("Failed to forward translator result response: {}", err);
+                                }
+                            }
+                            Err(err) => {
+                                log_error!("Failed to receive translator result response: {}", err);
+                            }
+                        };
+                    }
+                }
+                Err(err) => {
+                    log_error!("Failed to listen translator result response: {}", err);
+                }
+            };
+        }
+    }
 }
 
 impl AudioNode<SpeechAssemblerResult, SpeechTranslatorResult> for SpeechTranslatorNode {
@@ -76,13 +191,12 @@ impl AudioNode<SpeechAssemblerResult, SpeechTranslatorResult> for SpeechTranslat
     fn process(&mut self) {
         if let Some(mut receiver) = self.input_source.take() {
             let asr_service_url = self.asr_service_url.clone();
-            let sender = self.sender.clone();
             let speaker = self.speaker.clone();
             let meeting_room = self.meeting_room.clone();
             tokio::spawn(async move {
-                let mut speech_translator_client = SpeechTranslatorClient::new(asr_service_url).await;
                 while let Some(result) = receiver.recv().await {
-                    let speaker = match speaker.read() { 
+                    let address = asr_service_url.clone();
+                    let speaker = match speaker.read() {
                         Ok(speaker) => speaker.clone(),
                         Err(err) => {
                             panic!("Failed to read speaker: {}", err);
@@ -95,26 +209,21 @@ impl AudioNode<SpeechAssemblerResult, SpeechTranslatorResult> for SpeechTranslat
                         }
                     };
                     let audio_bytes = encode_to_wav_bytes(result.samples());
-                    speech_translator_client.send(speaker, meeting_room, 16000, audio_bytes).await;
-                    let transcript = format!(
-                        "{} {} {}",
-                        result
-                            .start_record_time()
-                            .format("%Y-%m-%d %H:%M:%S")
-                            .to_string(),
-                        result
-                            .end_record_time()
-                            .format("%Y-%m-%d %H:%M:%S")
-                            .to_string(),
-                        result.samples().len()
-                    );
-                    if let Err(err) = sender.send(SpeechTranslatorResult::new(transcript)).await {
-                        log_error!(
-                            "Speech translator node failed to send speech translator result to receiver: {}",
-                            err
-                        );
-                    }
+                    SpeechTranslatorNode::send_request(address, speaker, meeting_room, 16000, audio_bytes).await;
                 }
+            });
+            let asr_service_url = self.asr_service_url.clone();
+            let sender = self.sender.clone();
+            let meeting_room = self.meeting_room.clone();
+            tokio::spawn(async move {
+                let password = "".to_string();
+                let meeting_room = match meeting_room.read() {
+                    Ok(meeting_room) => meeting_room.clone(),
+                    Err(err) => {
+                        panic!("Failed to read meeting room: {}", err);
+                    }
+                };
+                SpeechTranslatorNode::receive_response(asr_service_url, meeting_room, password, sender).await;
             });
         }
     }

@@ -36,6 +36,7 @@ impl SpeechAssemblerResult {
         self.start_record_time
     }
 
+    #[allow(dead_code)]
     pub fn end_record_time(&self) -> &DateTime<Local> {
         &self.end_record_time
     }

@@ -1,1 +1,0 @@
-pub mod speech_translator_client;

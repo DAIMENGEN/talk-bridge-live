@@ -6,9 +6,10 @@ mod silero_vad;
 mod utils;
 mod protos_gen;
 mod language;
+mod speech_translation;
 
 use crate::app_state::{set_microphone_gain, set_speech_threshold, set_audio_tolerance, AppState, set_speech_merge_threshold, set_speaker, set_meeting_room, set_asr_service_url};
-use crate::audio::recorder::{start_recording, stop_recording};
+use crate::speech_translation::{start_recording, stop_recording};
 use crate::device::device_manager::{
     human_voice_detection, list_microphone_names, list_speaker_names,
     stop_human_voice_detection,

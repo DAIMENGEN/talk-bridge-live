@@ -1,6 +1,5 @@
 pub mod audio_context;
 pub mod audio_node;
-pub mod recorder;
 pub mod transcription;
 
 pub type AudioSample = f32;

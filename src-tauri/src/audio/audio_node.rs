@@ -11,7 +11,7 @@ pub mod vad_node;
 pub mod speech_extractor_node;
 pub mod speech_assembler_node;
 pub mod speech_translator_node;
-pub mod wav_writer_node;
+pub mod persistence_node;
 
 pub trait AudioNode<Input: Send, Output: Send>: Send {
     fn connect_input_source(&mut self, input_source: Receiver<Input>) -> Receiver<Output>;

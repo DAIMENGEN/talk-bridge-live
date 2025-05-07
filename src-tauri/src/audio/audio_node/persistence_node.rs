@@ -4,16 +4,16 @@ use crate::utils::wav_utils;
 use std::env;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
-pub struct WavWriterNode {
+pub struct PersistenceNode {
     sender: Sender<SpeechAssemblerResult>,
     input_source: Option<Receiver<SpeechAssemblerResult>>,
     output_source: Option<Receiver<SpeechAssemblerResult>>,
 }
 
-impl WavWriterNode {
+impl PersistenceNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = channel::<SpeechAssemblerResult>(channel_capacity);
-        WavWriterNode {
+        PersistenceNode {
             sender,
             input_source: None,
             output_source: Some(output_source),
@@ -21,7 +21,7 @@ impl WavWriterNode {
     }
 }
 
-impl AudioNode<SpeechAssemblerResult, SpeechAssemblerResult> for WavWriterNode {
+impl AudioNode<SpeechAssemblerResult, SpeechAssemblerResult> for PersistenceNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<SpeechAssemblerResult>,

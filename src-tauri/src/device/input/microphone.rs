@@ -78,6 +78,17 @@ impl Microphone {
         };
         Ok(rx)
     }
+    #[allow(dead_code)]
+    pub fn exit(&mut self) {
+        if let Some(stream) = self.stream.take() {
+            stream.pause().unwrap_or_else(|_| {
+                self.stream = Some(stream);
+                log_error!("Microphone {} stream exit error.", self.get_name());
+            });
+        } else { 
+            log_info!("Microphone {} stream was already stopped.", self.get_name());
+        }
+    }
     pub fn play(&self) {
         if let Some(stream) = &self.stream {
             match stream.play() {

@@ -8,6 +8,7 @@ use chrono::{DateTime, Local};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tonic::Request;
+use crate::language::Language;
 
 pub struct SpeechTranslatorResult {
     speaker: String,
@@ -126,7 +127,7 @@ impl SpeechTranslatorNode {
                 end: 0,
                 sample_rate: sample_rate as i64,
                 audio_bytes,
-                target_language: vec!["cmn".to_string(), "eng".to_string(), "jpn".to_string()],
+                target_language: vec![Language::Chinese.code().to_string(), Language::English.code().to_string(), Language::Japanese.code().to_string(), Language::German.code().to_string()],
                 tag: "".to_string(),
                 tag64: 1,
             });

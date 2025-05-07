@@ -1,15 +1,15 @@
-use crate::audio::audio_node::speech_extractor_node::SpeechExtractorResult;
+use crate::audio::audio_node::vocal_isolation_node::VocalIsolationResult;
 use crate::audio::audio_node::vad_node::VADResult;
 use crate::audio::AudioBlock;
 use tokio::sync::mpsc::Receiver;
-use crate::audio::audio_node::speech_assembler_node::SpeechAssemblerResult;
+use crate::audio::audio_node::concatenation_node::ConcatenationResult;
 use crate::audio::audio_node::speech_translator_node::SpeechTranslatorResult;
 
 pub mod gain_node;
 pub mod source_node;
 pub mod vad_node;
-pub mod speech_extractor_node;
-pub mod speech_assembler_node;
+pub mod vocal_isolation_node;
+pub mod concatenation_node;
 pub mod speech_translator_node;
 pub mod persistence_node;
 
@@ -22,10 +22,10 @@ pub enum AudioNodeEnum {
     SourceNode(Box<dyn AudioNode<AudioBlock, AudioBlock>>),
     GainNode(Box<dyn AudioNode<AudioBlock, AudioBlock>>),
     VadNode(Box<dyn AudioNode<AudioBlock, VADResult>>),
-    SpeechExtractorNode(Box<dyn AudioNode<VADResult, SpeechExtractorResult>>),
-    SpeechAssemblerNode(Box<dyn AudioNode<SpeechExtractorResult, SpeechAssemblerResult>>),
-    SpeechTranslatorNode(Box<dyn AudioNode<SpeechAssemblerResult, SpeechTranslatorResult>>),
-    WavWriterNode(Box<dyn AudioNode<SpeechAssemblerResult, SpeechAssemblerResult>>),
+    SpeechExtractorNode(Box<dyn AudioNode<VADResult, VocalIsolationResult>>),
+    SpeechAssemblerNode(Box<dyn AudioNode<VocalIsolationResult, ConcatenationResult>>),
+    SpeechTranslatorNode(Box<dyn AudioNode<ConcatenationResult, SpeechTranslatorResult>>),
+    WavWriterNode(Box<dyn AudioNode<ConcatenationResult, ConcatenationResult>>),
 }
 
 impl AudioNodeEnum {

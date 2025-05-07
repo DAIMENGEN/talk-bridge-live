@@ -9,19 +9,19 @@ use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-pub struct SpeechExtractorResult {
+pub struct VocalIsolationResult {
     start_record_time: DateTime<Local>,
     end_record_time: DateTime<Local>,
     samples: AudioBlock,
 }
 
-impl SpeechExtractorResult {
+impl VocalIsolationResult {
     pub fn new(
         start_record_time: DateTime<Local>,
         end_record_time: DateTime<Local>,
         samples: AudioBlock,
     ) -> Self {
-        SpeechExtractorResult {
+        VocalIsolationResult {
             start_record_time,
             end_record_time,
             samples,
@@ -56,18 +56,18 @@ impl SpeechExtractorResult {
     }
 }
 
-pub struct SpeechExtractorNode {
+pub struct VocalIsolationNode {
     audio_tolerance: Arc<RwLock<usize>>,
     speech_threshold: Arc<RwLock<f32>>,
-    sender: Sender<SpeechExtractorResult>,
+    sender: Sender<VocalIsolationResult>,
     input_source: Option<Receiver<VADResult>>,
-    output_source: Option<Receiver<SpeechExtractorResult>>,
+    output_source: Option<Receiver<VocalIsolationResult>>,
 }
 
-impl SpeechExtractorNode {
+impl VocalIsolationNode {
     pub fn new(channel_capacity: usize) -> Self {
-        let (sender, output_source) = mpsc::channel::<SpeechExtractorResult>(channel_capacity);
-        SpeechExtractorNode {
+        let (sender, output_source) = mpsc::channel::<VocalIsolationResult>(channel_capacity);
+        VocalIsolationNode {
             audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
             sender,
@@ -85,11 +85,11 @@ impl SpeechExtractorNode {
     }
 }
 
-impl AudioNode<VADResult, SpeechExtractorResult> for SpeechExtractorNode {
+impl AudioNode<VADResult, VocalIsolationResult> for VocalIsolationNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<VADResult>,
-    ) -> Receiver<SpeechExtractorResult> {
+    ) -> Receiver<VocalIsolationResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
             log_error!("Reassembly node output source is None");
@@ -128,7 +128,7 @@ impl AudioNode<VADResult, SpeechExtractorResult> for SpeechExtractorNode {
                             .take(audio_tolerance)
                             .all(|&probability| probability < speech_threshold)
                     {
-                        let speech_extractor_result = SpeechExtractorResult::new(
+                        let speech_extractor_result = VocalIsolationResult::new(
                             start_record_time.take().unwrap(),
                             Local::now(),
                             speech_audio_block.make_contiguous().to_vec(),

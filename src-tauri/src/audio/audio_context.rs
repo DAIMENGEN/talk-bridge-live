@@ -5,8 +5,8 @@ use crate::audio::audio_node::AudioNodeEnum;
 use crate::device::input::microphone::Microphone;
 use std::error::Error;
 use tokio::sync::mpsc::Receiver;
-use crate::audio::audio_node::speech_assembler_node::SpeechAssemblerNode;
-use crate::audio::audio_node::speech_extractor_node::SpeechExtractorNode;
+use crate::audio::audio_node::concatenation_node::ConcatenationNode;
+use crate::audio::audio_node::vocal_isolation_node::VocalIsolationNode;
 use crate::audio::audio_node::speech_translator_node::SpeechTranslatorNode;
 use crate::audio::audio_node::persistence_node::PersistenceNode;
 
@@ -55,11 +55,11 @@ impl AudioContext {
         self.connect_audio_node(AudioNodeEnum::VadNode(Box::new(audio_node)))
     }
 
-    pub fn connect_speech_extractor_node(&mut self, audio_node: SpeechExtractorNode) {
+    pub fn connect_speech_extractor_node(&mut self, audio_node: VocalIsolationNode) {
         self.connect_audio_node(AudioNodeEnum::SpeechExtractorNode(Box::new(audio_node)))
     }
 
-    pub fn connect_speech_assembler_node(&mut self, audio_node: SpeechAssemblerNode) {
+    pub fn connect_speech_assembler_node(&mut self, audio_node: ConcatenationNode) {
         self.connect_audio_node(AudioNodeEnum::SpeechAssemblerNode(Box::new(audio_node)))
     }
 
@@ -85,12 +85,12 @@ impl AudioContext {
         VadNode::new(1024, sample_rate, chunk_size)
     }
 
-    pub fn create_speech_extractor_node(&self) -> SpeechExtractorNode {
-        SpeechExtractorNode::new(1024)
+    pub fn create_speech_extractor_node(&self) -> VocalIsolationNode {
+        VocalIsolationNode::new(1024)
     }
 
-    pub fn create_speech_assembler_node(&self) -> SpeechAssemblerNode {
-        SpeechAssemblerNode::new(1024)
+    pub fn create_speech_assembler_node(&self) -> ConcatenationNode {
+        ConcatenationNode::new(1024)
     }
 
     pub fn create_speech_translator_node(&self, asr_service_url: String) -> SpeechTranslatorNode {

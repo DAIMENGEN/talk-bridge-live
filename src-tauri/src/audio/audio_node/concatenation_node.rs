@@ -1,5 +1,5 @@
 use crate::app_state::DEFAULT_SPEECH_MERGE_THRESHOLD;
-use crate::audio::audio_node::speech_extractor_node::SpeechExtractorResult;
+use crate::audio::audio_node::vocal_isolation_node::VocalIsolationResult;
 use crate::audio::audio_node::AudioNode;
 use crate::audio::{AudioBlock, AudioSample};
 use crate::log_error;
@@ -8,19 +8,19 @@ use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
-pub struct SpeechAssemblerResult {
+pub struct ConcatenationResult {
     start_record_time: DateTime<Local>,
     end_record_time: DateTime<Local>,
     samples: AudioBlock,
 }
 
-impl SpeechAssemblerResult {
+impl ConcatenationResult {
     pub fn new(
         start_record_time: DateTime<Local>,
         end_record_time: DateTime<Local>,
         samples: AudioBlock,
     ) -> Self {
-        SpeechAssemblerResult {
+        ConcatenationResult {
             start_record_time,
             end_record_time,
             samples,
@@ -56,17 +56,17 @@ impl SpeechAssemblerResult {
     }
 }
 
-pub struct SpeechAssemblerNode {
+pub struct ConcatenationNode {
     speech_merge_threshold: Arc<RwLock<f32>>,
-    sender: Sender<SpeechAssemblerResult>,
-    input_source: Option<Receiver<SpeechExtractorResult>>,
-    output_source: Option<Receiver<SpeechAssemblerResult>>,
+    sender: Sender<ConcatenationResult>,
+    input_source: Option<Receiver<VocalIsolationResult>>,
+    output_source: Option<Receiver<ConcatenationResult>>,
 }
 
-impl SpeechAssemblerNode {
+impl ConcatenationNode {
     pub fn new(channel_capacity: usize) -> Self {
-        let (sender, output_source) = channel::<SpeechAssemblerResult>(channel_capacity);
-        SpeechAssemblerNode {
+        let (sender, output_source) = channel::<ConcatenationResult>(channel_capacity);
+        ConcatenationNode {
             speech_merge_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_MERGE_THRESHOLD)),
             sender,
             input_source: None,
@@ -79,11 +79,11 @@ impl SpeechAssemblerNode {
     }
 }
 
-impl AudioNode<SpeechExtractorResult, SpeechAssemblerResult> for SpeechAssemblerNode {
+impl AudioNode<VocalIsolationResult, ConcatenationResult> for ConcatenationNode {
     fn connect_input_source(
         &mut self,
-        input_source: Receiver<SpeechExtractorResult>,
-    ) -> Receiver<SpeechAssemblerResult> {
+        input_source: Receiver<VocalIsolationResult>,
+    ) -> Receiver<ConcatenationResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
             log_error!("Speech context node output source is None");
@@ -119,7 +119,7 @@ impl AudioNode<SpeechExtractorResult, SpeechAssemblerResult> for SpeechAssembler
                     }
                     audio_block.extend(samples);
                     end_record_time_option.replace(current_end_record_time.clone());
-                    let speech_assembler_result = SpeechAssemblerResult::new(
+                    let speech_assembler_result = ConcatenationResult::new(
                        start_record_time_option.unwrap(),
                        end_record_time_option.unwrap(),
                        audio_block.make_contiguous().to_vec(),

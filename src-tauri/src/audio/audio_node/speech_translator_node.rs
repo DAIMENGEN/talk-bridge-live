@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::audio::audio_node::speech_assembler_node::SpeechAssemblerResult;
+use crate::audio::audio_node::concatenation_node::ConcatenationResult;
 use crate::audio::audio_node::AudioNode;
 use crate::log_error;
 use crate::protos_gen::protos::chat_service_client::ChatServiceClient;
@@ -88,7 +88,7 @@ pub struct SpeechTranslatorNode {
     meeting_room: Arc<RwLock<String>>,
     asr_service_url: String,
     sender: Sender<SpeechTranslatorResult>,
-    input_source: Option<Receiver<SpeechAssemblerResult>>,
+    input_source: Option<Receiver<ConcatenationResult>>,
     output_source: Option<Receiver<SpeechTranslatorResult>>,
 }
 
@@ -182,10 +182,10 @@ impl SpeechTranslatorNode {
     }
 }
 
-impl AudioNode<SpeechAssemblerResult, SpeechTranslatorResult> for SpeechTranslatorNode {
+impl AudioNode<ConcatenationResult, SpeechTranslatorResult> for SpeechTranslatorNode {
     fn connect_input_source(
         &mut self,
-        input_source: Receiver<SpeechAssemblerResult>,
+        input_source: Receiver<ConcatenationResult>,
     ) -> Receiver<SpeechTranslatorResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {

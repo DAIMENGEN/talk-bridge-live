@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::audio::audio_node::speech_assembler_node::SpeechAssemblerResult;
 use crate::audio::audio_node::AudioNode;
 use crate::log_error;
@@ -18,22 +19,26 @@ pub struct SpeechTranslatorResult {
     japanese_text: String,
     german_text: String,
     spanish_text: String,
-    korean_text: String
+    korean_text: String,
 }
 
 impl SpeechTranslatorResult {
     pub fn new(response: ChatRespond) -> Self {
         let datetime = DateTime::from_timestamp(response.start, 0).unwrap();
         let datetime = datetime.with_timezone(&Local);
+        let translate_result: HashMap<_, _> = response.target_language.iter().cloned().zip(response.translated_text.iter().cloned()).collect();
+        let get_translation = |lang_code| {
+            translate_result.get(lang_code).cloned().unwrap_or_default()
+        };
         Self {
             speaker: response.speaker,
             datetime,
-            chinese_text: "".to_string(),
-            english_text: "".to_string(),
-            japanese_text: "".to_string(),
-            german_text: "".to_string(),
-            spanish_text: "".to_string(),
-            korean_text: "".to_string()
+            chinese_text: get_translation(Language::Chinese.code()),
+            english_text: get_translation(Language::English.code()),
+            japanese_text: get_translation(Language::Japanese.code()),
+            spanish_text: get_translation(Language::Spanish.code()),
+            german_text: get_translation(Language::German.code()),
+            korean_text: get_translation(Language::Korean.code()),
         }
     }
 

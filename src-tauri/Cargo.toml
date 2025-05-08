@@ -18,6 +18,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tonic-build = "0.13.0"
 tauri-build = { version = "2", features = [] }
 
+[dependencies.whisper-rs]
+path = "lib/whisper-rs"
+
 [dependencies]
 log = "0.4.27"
 cpal = "0.15.3"

@@ -160,7 +160,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 10.150.115.103
+                      address: 10.150.112.34
                       port_value: 50051
     - name: webapp_server
       connect_timeout: 1s

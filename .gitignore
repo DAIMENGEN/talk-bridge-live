@@ -26,10 +26,12 @@ dist-ssr
 # Rust WebAssembly
 */target
 **/*.rs.bk
-Cargo.lock
 src-wasm/bin/
 pkg/
 wasm-pack.log
 
 # Grpc
 */protos_gen
+
+# Models
+ggml-large-v3.bin

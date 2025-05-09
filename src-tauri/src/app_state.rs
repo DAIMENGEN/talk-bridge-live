@@ -1,4 +1,4 @@
-use crate::audio::audio_context::AudioContext;
+use crate::audio::context::AudioContext;
 use std::sync::{Arc, Mutex, RwLock};
 use tauri::State;
 
@@ -8,7 +8,7 @@ pub const DEFAULT_MICROPHONE_GAIN: f32 = 1.0;
 
 pub const DEFAULT_SPEECH_THRESHOLD: f32 = 0.5;
 
-pub const DEFAULT_SPEECH_MERGE_THRESHOLD: f32 = 0.5;
+pub const DEFAULT_AUDIO_GAP_THRESHOLD: f32 = 0.5;
 
 pub const DEFAULT_ASR_SERVICE_URL: &str = "http://10.150.112.34:50051";
 
@@ -33,7 +33,7 @@ impl AppState {
             audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             microphone_gain: Arc::new(RwLock::new(DEFAULT_MICROPHONE_GAIN)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
-            speech_merge_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_MERGE_THRESHOLD)),
+            speech_merge_threshold: Arc::new(RwLock::new(DEFAULT_AUDIO_GAP_THRESHOLD)),
             recording_context: Arc::new(None.into()),
             human_voice_detection_context: Arc::new(None.into()),
         }

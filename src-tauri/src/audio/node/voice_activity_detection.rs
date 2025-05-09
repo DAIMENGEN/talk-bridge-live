@@ -1,18 +1,18 @@
-use crate::audio::audio_node::AudioNode;
+use crate::audio::node::AudioNode;
 use crate::audio::AudioBlock;
-use crate::log_error;
+use crate::log_warn;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use voice_activity_detector::VoiceActivityDetector;
 
-pub struct VADResult {
+pub struct VoiceActivityDetectionResult {
     probability: f32,
     samples: AudioBlock,
 }
 
-impl VADResult {
+impl VoiceActivityDetectionResult {
     pub fn new(probability: f32, samples: AudioBlock) -> Self {
-        VADResult {
+        VoiceActivityDetectionResult {
             probability,
             samples,
         }
@@ -32,18 +32,19 @@ impl VADResult {
     }
 }
 
-pub struct VadNode {
+pub struct VoiceActivityDetectionNode {
     chunk_size: usize,
     sample_rate: u32,
-    sender: Sender<VADResult>,
+    sender: Sender<VoiceActivityDetectionResult>,
     input_source: Option<Receiver<AudioBlock>>,
-    output_source: Option<Receiver<VADResult>>,
+    output_source: Option<Receiver<VoiceActivityDetectionResult>>,
 }
 
-impl VadNode {
+impl VoiceActivityDetectionNode {
     pub fn new(channel_capacity: usize, sample_rate: u32, chunk_size: usize) -> Self {
-        let (sender, output_source) = mpsc::channel::<VADResult>(channel_capacity);
-        VadNode {
+        let (sender, output_source) =
+            mpsc::channel::<VoiceActivityDetectionResult>(channel_capacity);
+        VoiceActivityDetectionNode {
             sender,
             chunk_size,
             sample_rate,
@@ -53,19 +54,18 @@ impl VadNode {
     }
 }
 
-impl AudioNode<AudioBlock, VADResult> for VadNode {
+impl AudioNode<AudioBlock, VoiceActivityDetectionResult> for VoiceActivityDetectionNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<AudioBlock>,
-    ) -> Receiver<VADResult> {
+    ) -> Receiver<VoiceActivityDetectionResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
-            log_error!("Vad node output source is None");
-            panic!("Vad node output source is None")
+            panic!("Failed to take output source from voice activity detection node: output source is None")
         })
     }
 
-    fn process(&mut self) {
+    fn activate(&mut self) {
         if let Some(mut receiver) = self.input_source.take() {
             let chunk_size = self.chunk_size;
             let sample_rate = self.sample_rate;
@@ -76,18 +76,22 @@ impl AudioNode<AudioBlock, VADResult> for VadNode {
                 .build() // https://github.com/nkeenan38/voice_activity_detector
             {
                 Ok(voice_activity_detector) => voice_activity_detector,
-                Err(e) => {
-                    log_error!("Failed to create VAD: {}", e);
-                    panic!("Failed to create VAD: {}", e);
+                Err(error) => {
+                    panic!("Failed to create voice activity detector: {}", error);
                 }
             };
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
                     let probability = vad.predict(samples.clone());
-                    if let Err(err) = sender.send(VADResult::new(probability, samples)).await {
-                        log_error!("Vad node failed to send audio frame to receiver: {}", err);
+                    if let Err(err) = sender
+                        .send(VoiceActivityDetectionResult::new(probability, samples))
+                        .await
+                    {
+                        log_warn!("Voice activity detection node failed to send audio data to the output source: {}", err);
                     }
                 }
+                receiver.close();
+                sender.closed().await;
             });
         }
     }

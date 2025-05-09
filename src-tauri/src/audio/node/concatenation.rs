@@ -1,8 +1,8 @@
-use crate::app_state::DEFAULT_SPEECH_MERGE_THRESHOLD;
-use crate::audio::audio_node::vocal_isolation_node::VocalIsolationResult;
-use crate::audio::audio_node::AudioNode;
+use crate::app_state::DEFAULT_AUDIO_GAP_THRESHOLD;
+use crate::audio::node::vocal_isolation::VocalIsolationResult;
+use crate::audio::node::AudioNode;
 use crate::audio::{AudioBlock, AudioSample};
-use crate::log_error;
+use crate::log_warn;
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
@@ -11,19 +11,19 @@ use tokio::sync::mpsc::{channel, Receiver, Sender};
 pub struct ConcatenationResult {
     start_record_time: DateTime<Local>,
     end_record_time: DateTime<Local>,
-    samples: AudioBlock,
+    speech_data: AudioBlock,
 }
 
 impl ConcatenationResult {
     pub fn new(
         start_record_time: DateTime<Local>,
         end_record_time: DateTime<Local>,
-        samples: AudioBlock,
+        speech_data: AudioBlock,
     ) -> Self {
         ConcatenationResult {
             start_record_time,
             end_record_time,
-            samples,
+            speech_data,
         }
     }
 
@@ -46,18 +46,18 @@ impl ConcatenationResult {
         self.end_record_time
     }
 
-    pub fn samples(&self) -> &AudioBlock {
-        &self.samples
+    pub fn speech_data(&self) -> &AudioBlock {
+        &self.speech_data
     }
 
     #[allow(dead_code)]
-    pub fn into_samples(self) -> AudioBlock {
-        self.samples
+    pub fn into_speech_data(self) -> AudioBlock {
+        self.speech_data
     }
 }
 
 pub struct ConcatenationNode {
-    speech_merge_threshold: Arc<RwLock<f32>>,
+    audio_gap_threshold: Arc<RwLock<f32>>,
     sender: Sender<ConcatenationResult>,
     input_source: Option<Receiver<VocalIsolationResult>>,
     output_source: Option<Receiver<ConcatenationResult>>,
@@ -67,15 +67,15 @@ impl ConcatenationNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = channel::<ConcatenationResult>(channel_capacity);
         ConcatenationNode {
-            speech_merge_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_MERGE_THRESHOLD)),
+            audio_gap_threshold: Arc::new(RwLock::new(DEFAULT_AUDIO_GAP_THRESHOLD)),
             sender,
             input_source: None,
             output_source: Some(output_source),
         }
     }
 
-    pub fn set_merge_threshold(&mut self, merge_threshold: Arc<RwLock<f32>>) {
-        self.speech_merge_threshold = merge_threshold;
+    pub fn set_audio_gap_threshold(&mut self, audio_gap_threshold: Arc<RwLock<f32>>) {
+        self.audio_gap_threshold = audio_gap_threshold;
     }
 }
 
@@ -86,49 +86,46 @@ impl AudioNode<VocalIsolationResult, ConcatenationResult> for ConcatenationNode 
     ) -> Receiver<ConcatenationResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
-            log_error!("Speech context node output source is None");
-            panic!("Speech context node output source is None")
+            panic!("Failed to take output source from concatenation node: output source is None")
         })
     }
 
-    fn process(&mut self) {
+    fn activate(&mut self) {
         if let Some(mut receiver) = self.input_source.take() {
             let sender = self.sender.clone();
-            let speech_merge_threshold = self.speech_merge_threshold.clone();
+            let audio_gap_threshold = self.audio_gap_threshold.clone();
             tokio::spawn(async move {
                 let mut audio_block = VecDeque::<AudioSample>::new();
                 let mut start_record_time_option: Option<DateTime<Local>> = None;
                 let mut end_record_time_option: Option<DateTime<Local>> = None;
                 while let Some(result) = receiver.recv().await {
-                    let samples = result.samples();
+                    let speech_data = result.speech_data();
                     let current_end_record_time = result.end_record_time();
                     let current_start_record_time = result.start_record_time();
-                    let speech_merge_threshold = speech_merge_threshold
+                    let audio_gap_threshold = audio_gap_threshold
                         .read()
-                        .map_or(DEFAULT_SPEECH_MERGE_THRESHOLD, |threshold| *threshold);
+                        .map_or(DEFAULT_AUDIO_GAP_THRESHOLD, |threshold| *threshold);
                     if start_record_time_option.is_none() {
                         start_record_time_option.replace(current_start_record_time.clone());
                     }
                     if let Some(prev_end_record_time) = end_record_time_option {
-                        let duration = current_start_record_time.signed_duration_since(prev_end_record_time);
+                        let duration =
+                            current_start_record_time.signed_duration_since(prev_end_record_time);
                         let duration_millis = duration.num_milliseconds();
-                        if duration_millis > (speech_merge_threshold * 1000f32) as i64 {
+                        if duration_millis > (audio_gap_threshold * 1000f32) as i64 {
                             audio_block.clear();
                             start_record_time_option.replace(current_start_record_time.clone());
                         }
                     }
-                    audio_block.extend(samples);
+                    audio_block.extend(speech_data);
                     end_record_time_option.replace(current_end_record_time.clone());
                     let speech_assembler_result = ConcatenationResult::new(
-                       start_record_time_option.unwrap(),
-                       end_record_time_option.unwrap(),
-                       audio_block.make_contiguous().to_vec(),
+                        start_record_time_option.unwrap(),
+                        end_record_time_option.unwrap(),
+                        audio_block.make_contiguous().to_vec(),
                     );
                     if let Err(err) = sender.send(speech_assembler_result).await {
-                        log_error!(
-                            "Speech context node failed to send audio frame to receiver: {}",
-                            err
-                        );
+                        log_warn!("Concatenation node failed to send audio data to the output source: {}", err);
                     }
                 }
             });

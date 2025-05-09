@@ -1,5 +1,5 @@
-use crate::audio::audio_context::AudioContext;
-use crate::audio::audio_node::AudioNode;
+use crate::audio::context::AudioContext;
+use crate::audio::node::AudioNode;
 use crate::device::input::microphone::Microphone;
 use crate::{log_error, AppState};
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -50,8 +50,8 @@ pub async fn human_voice_detection(
             let microphone = Microphone::new(device);
             let mut audio_context = AudioContext::new(microphone);
             let receiver = audio_context.init().unwrap();
-            let mut source_node = audio_context.create_source_node();
-            let mut gain_node = audio_context.create_gain_node();
+            let mut source_node = audio_context.create_stream_input_node();
+            let mut gain_node = audio_context.create_gain_control_node();
             let mut vad_node = audio_context.create_vad_node();
             let receiver = source_node.connect_input_source(receiver);
             let receiver = gain_node.connect_input_source(receiver);
@@ -67,8 +67,8 @@ pub async fn human_voice_detection(
                     }
                 }
             });
-            audio_context.connect_source_node(source_node);
-            audio_context.connect_gain_node(gain_node);
+            audio_context.connect_stream_input_node(source_node);
+            audio_context.connect_gain_control_node(gain_node);
             audio_context.connect_vad_node(vad_node);
             audio_context.start();
             match app_state.set_human_voice_detection_context(audio_context) {

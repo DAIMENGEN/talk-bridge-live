@@ -8,6 +8,7 @@ mod protos_gen;
 mod language;
 mod speech_translation;
 
+use std::panic;
 use crate::app_state::{set_microphone_gain, set_speech_threshold, set_audio_tolerance, AppState, set_speech_merge_threshold, set_speaker, set_meeting_room, set_asr_service_url};
 use crate::speech_translation::{start_recording, stop_recording};
 use crate::device::device_manager::{
@@ -37,6 +38,13 @@ pub fn run() {
                 .timezone_strategy(TimezoneStrategy::UseLocal) // Set the time zone strategy to use the local time zone.
                 .build(),
         )
+        .setup(|app| {
+            panic::set_hook(Box::new(|panic_info| {
+                let message = panic_info.payload().downcast_ref::<&str>().unwrap_or(&"<no message>");
+                log_error!("{}", message);
+            }));
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             set_speaker,
             stop_recording,

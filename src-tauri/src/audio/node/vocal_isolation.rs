@@ -1,8 +1,8 @@
 use crate::app_state::{DEFAULT_SPEECH_THRESHOLD, DEFAULT_TOLERANCE};
-use crate::audio::audio_node::vad_node::VADResult;
-use crate::audio::audio_node::AudioNode;
+use crate::audio::node::voice_activity_detection::VoiceActivityDetectionResult;
+use crate::audio::node::AudioNode;
 use crate::audio::{AudioBlock, AudioSample};
-use crate::log_error;
+use crate::log_warn;
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
@@ -12,19 +12,19 @@ use tokio::sync::mpsc::{Receiver, Sender};
 pub struct VocalIsolationResult {
     start_record_time: DateTime<Local>,
     end_record_time: DateTime<Local>,
-    samples: AudioBlock,
+    speech_data: AudioBlock,
 }
 
 impl VocalIsolationResult {
     pub fn new(
         start_record_time: DateTime<Local>,
         end_record_time: DateTime<Local>,
-        samples: AudioBlock,
+        speech_data: AudioBlock,
     ) -> Self {
         VocalIsolationResult {
             start_record_time,
             end_record_time,
-            samples,
+            speech_data,
         }
     }
 
@@ -46,13 +46,13 @@ impl VocalIsolationResult {
         self.end_record_time
     }
 
-    pub fn samples(&self) -> &AudioBlock {
-        &self.samples
+    pub fn speech_data(&self) -> &AudioBlock {
+        &self.speech_data
     }
 
     #[allow(dead_code)]
-    pub fn into_samples(self) -> AudioBlock {
-        self.samples
+    pub fn into_speech_data(self) -> AudioBlock {
+        self.speech_data
     }
 }
 
@@ -60,7 +60,7 @@ pub struct VocalIsolationNode {
     audio_tolerance: Arc<RwLock<usize>>,
     speech_threshold: Arc<RwLock<f32>>,
     sender: Sender<VocalIsolationResult>,
-    input_source: Option<Receiver<VADResult>>,
+    input_source: Option<Receiver<VoiceActivityDetectionResult>>,
     output_source: Option<Receiver<VocalIsolationResult>>,
 }
 
@@ -85,19 +85,18 @@ impl VocalIsolationNode {
     }
 }
 
-impl AudioNode<VADResult, VocalIsolationResult> for VocalIsolationNode {
+impl AudioNode<VoiceActivityDetectionResult, VocalIsolationResult> for VocalIsolationNode {
     fn connect_input_source(
         &mut self,
-        input_source: Receiver<VADResult>,
+        input_source: Receiver<VoiceActivityDetectionResult>,
     ) -> Receiver<VocalIsolationResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
-            log_error!("Reassembly node output source is None");
-            panic!("Reassembly node output source is None")
+            panic!("Failed to take output source from vocal isolation node: output source is None")
         })
     }
 
-    fn process(&mut self) {
+    fn activate(&mut self) {
         if let Some(mut receiver) = self.input_source.take() {
             let sender = self.sender.clone();
             let mut probabilities = VecDeque::<f32>::new();
@@ -134,10 +133,7 @@ impl AudioNode<VADResult, VocalIsolationResult> for VocalIsolationNode {
                             speech_audio_block.make_contiguous().to_vec(),
                         );
                         if let Err(err) = sender.send(speech_extractor_result).await {
-                            log_error!(
-                                "Reassembly node failed to send audio frame to receiver: {}",
-                                err
-                            );
+                            log_warn!("Vocal isolation node failed to send audio data to the output source: {}", err);
                         }
                         probabilities.clear();
                         speech_audio_block.clear();

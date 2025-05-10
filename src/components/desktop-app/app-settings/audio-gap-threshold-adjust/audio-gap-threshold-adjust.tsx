@@ -1,15 +1,15 @@
-import "./speech-merge-threshold-adjust.scss";
+import "./audio-gap-threshold-adjust.scss";
 import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {TauriStateService} from "@src/tauri-services/tauri-state-service.ts";
-import {setSpeechMergeThreshold} from "@src/store/features/app-settings-slice.ts";
+import {setAudioGapThreshold} from "@src/store/features/app-settings-slice.ts";
 import {log} from "@src/logger.ts";
 import {Slider} from "antd";
 
-export const SpeechMergeThresholdAdjust = () => {
+export const AudioGapThresholdAdjust = () => {
     const appDispatch = useAppDispatch();
-    const speechMergeThreshold = useAppSelector((state) => state.appSettings.speechMergeThreshold);
+    const audioGapThreshold = useAppSelector((state) => state.appSettings.audioGapThreshold);
     return (
-        <div className={"speech-merge-threshold-adjust"}>
+        <div className={"audio-gap-threshold-adjust"}>
             <Slider
                 min={0}
                 max={2}
@@ -17,13 +17,13 @@ export const SpeechMergeThresholdAdjust = () => {
                 onChange={(value) => {
                     TauriStateService.setSpeechMergeThreshold(value).then((result) => {
                         if (result) {
-                            appDispatch(setSpeechMergeThreshold(value));
+                            appDispatch(setAudioGapThreshold(value));
                         }
                     }).catch((error) => {
-                        log.error("Adjust speech merge threshold error: ", error);
+                        log.error("Adjust audio gap threshold error: ", error);
                     });
                 }}
-                defaultValue={speechMergeThreshold}/>
+                defaultValue={audioGapThreshold}/>
         </div>
     )
 }

@@ -133,7 +133,8 @@ impl AudioNode<ConcatenationResult, SpeechRecognitionResult> for SpeechRecogniti
                             panic!("Failed to create whisper state: {}", err)
                         },
                     };
-                    let whisper_full_params = FullParams::new(SamplingStrategy::Greedy { best_of: 0 });
+                    let mut whisper_full_params = FullParams::new(SamplingStrategy::Greedy { best_of: 0 });
+                    whisper_full_params.set_language(Some("auto"));
                     while let Some(result) = receiver.recv().await {
                         log_info!("Speech recognition node received concatenation result");
                         let speech_data = result.speech_data();

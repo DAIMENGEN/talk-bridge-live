@@ -20,6 +20,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies.whisper-rs]
 path = "lib/whisper-rs"
+features = ["cuda"]
 
 [dependencies]
 log = "0.4.27"

@@ -1,4 +1,4 @@
-.welcome {
+.join-meeting {
   margin: auto;
   color: #D0D4D9;
   text-align: center;
@@ -8,13 +8,20 @@
   justify-content: center;
   align-items: center;
 
-  .welcome-content-title {
-    font-size: 25px;
-  }
+  .join-meeting-content-input {
+    text-align: left;
 
-  .welcome-content-button {
-    button {
+    input {
       width: 260px;
     }
+
+    .input-label {
+      font-size: 15px;
+      color: #D0D4D9;
+    }
+  }
+
+  button {
+    width: 260px;
   }
 }

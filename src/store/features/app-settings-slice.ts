@@ -15,9 +15,9 @@ const initialState: AppSettingsStore = {
     isOpenSettings: false,
     isShowSettingsButton: false,
     microphoneGain: 1.0,
-    speechThreshold: 0.5,
+    speechThreshold: 0.75,
     audioGapThreshold: 0.5,
-    silenceStreakCount: 1,
+    silenceStreakCount: 3,
     selectedSpeakerName: undefined,
     selectedMicrophoneName: undefined
 }

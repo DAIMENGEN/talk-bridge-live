@@ -128,16 +128,22 @@ impl AudioNode<VoiceActivityDetectionResult, VocalIsolationResult> for VocalIsol
                             .take(silence_streak_count)
                             .all(|&probability| probability < speech_threshold)
                     {
-                        let speech_extractor_result = VocalIsolationResult::new(
-                            start_record_time.take().unwrap(),
-                            Local::now(),
-                            speech_audio_block.make_contiguous().to_vec(),
-                        );
-                        if let Err(err) = sender.send(speech_extractor_result).await {
-                            log_warn!("Vocal isolation node failed to send audio data to the output source: {}", err);
+                        let end_time = Local::now();
+                        let start_time = start_record_time.take().unwrap();
+                        if (end_time - start_time).num_milliseconds() >= 500 {
+                            let speech_extractor_result = VocalIsolationResult::new(
+                                start_time,
+                                end_time,
+                                speech_audio_block.make_contiguous().to_vec(),
+                            );
+                            if let Err(err) = sender.send(speech_extractor_result).await {
+                                log_warn!("Vocal isolation node failed to send audio data to the output source: {}", err);
+                            }
+                            probabilities.clear();
+                            speech_audio_block.clear();
+                        } else {
+                            start_record_time.replace(start_time);
                         }
-                        probabilities.clear();
-                        speech_audio_block.clear();
                     }
                 }
             });

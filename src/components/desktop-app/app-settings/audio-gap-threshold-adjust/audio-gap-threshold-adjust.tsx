@@ -15,7 +15,7 @@ export const AudioGapThresholdAdjust = () => {
                 max={2}
                 step={0.05}
                 onChange={(value) => {
-                    TauriStateService.setSpeechMergeThreshold(value).then((result) => {
+                    TauriStateService.setAudioGapThreshold(value).then((result) => {
                         if (result) {
                             appDispatch(setAudioGapThreshold(value));
                         }

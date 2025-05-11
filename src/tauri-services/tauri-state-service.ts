@@ -2,10 +2,6 @@ import {invoke} from "@tauri-apps/api/core";
 
 export class TauriStateService {
 
-    static setAudioTolerance(tolerance: number): Promise<boolean> {
-        return invoke<boolean>("set_audio_tolerance", {audio_tolerance: tolerance});
-    }
-
     static setMicrophoneGain(microphoneGain: number): Promise<boolean> {
         return invoke<boolean>("set_microphone_gain", {microphone_gain: microphoneGain});
     }
@@ -14,7 +10,11 @@ export class TauriStateService {
         return invoke<boolean>("set_speech_threshold", {speech_threshold: speechThreshold});
     }
 
-    static setSpeechMergeThreshold(audioGapThreshold: number): Promise<boolean> {
+    static setAudioGapThreshold(audioGapThreshold: number): Promise<boolean> {
         return invoke<boolean>("set_audio_gap_threshold", {audio_gap_threshold: audioGapThreshold});
+    }
+
+    static setSilenceStreakCount(silenceStreakCount: number): Promise<boolean> {
+        return invoke<boolean>("set_silence_streak_count", {silence_streak_count: silenceStreakCount});
     }
 }

@@ -1,4 +1,4 @@
-use crate::app_state::{DEFAULT_SPEECH_THRESHOLD, DEFAULT_TOLERANCE};
+use crate::app_state::{DEFAULT_SILENCE_STREAK_COUNT, DEFAULT_SPEECH_THRESHOLD};
 use crate::audio::node::voice_activity_detection::VoiceActivityDetectionResult;
 use crate::audio::node::AudioNode;
 use crate::audio::{AudioBlock, AudioSample};
@@ -57,8 +57,8 @@ impl VocalIsolationResult {
 }
 
 pub struct VocalIsolationNode {
-    audio_tolerance: Arc<RwLock<usize>>,
     speech_threshold: Arc<RwLock<f32>>,
+    silence_streak_count: Arc<RwLock<usize>>,
     sender: Sender<VocalIsolationResult>,
     input_source: Option<Receiver<VoiceActivityDetectionResult>>,
     output_source: Option<Receiver<VocalIsolationResult>>,
@@ -68,20 +68,20 @@ impl VocalIsolationNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = mpsc::channel::<VocalIsolationResult>(channel_capacity);
         VocalIsolationNode {
-            audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
+            silence_streak_count: Arc::new(RwLock::new(DEFAULT_SILENCE_STREAK_COUNT)),
             sender,
             input_source: None,
             output_source: Some(output_source),
         }
     }
 
-    pub fn set_tolerance(&mut self, audio_tolerance: Arc<RwLock<usize>>) {
-        self.audio_tolerance = audio_tolerance;
-    }
-
     pub fn set_speech_threshold(&mut self, speech_threshold: Arc<RwLock<f32>>) {
         self.speech_threshold = speech_threshold;
+    }
+
+    pub fn set_silence_streak_count(&mut self, silence_streak_count: Arc<RwLock<usize>>) {
+        self.silence_streak_count = silence_streak_count;
     }
 }
 
@@ -101,30 +101,31 @@ impl AudioNode<VoiceActivityDetectionResult, VocalIsolationResult> for VocalIsol
             let sender = self.sender.clone();
             let mut probabilities = VecDeque::<f32>::new();
             let mut speech_audio_block = VecDeque::<AudioSample>::new();
-            let audio_tolerance = self.audio_tolerance.clone();
             let speech_threshold = self.speech_threshold.clone();
+            let silence_streak_count = self.silence_streak_count.clone();
             tokio::spawn(async move {
                 let mut start_record_time: Option<DateTime<Local>> = None;
                 while let Some(result) = receiver.recv().await {
-                    let audio_tolerance = audio_tolerance
+                    let silence_streak_count = silence_streak_count
                         .read()
-                        .map_or(DEFAULT_TOLERANCE, |tolerance| *tolerance);
+                        .map_or(DEFAULT_SILENCE_STREAK_COUNT, |silence_streak_count| {
+                            *silence_streak_count
+                        });
                     let speech_threshold = speech_threshold
                         .read()
                         .map_or(DEFAULT_SPEECH_THRESHOLD, |threshold| *threshold);
                     let probability = result.probability();
-                    let samples = result.samples();
+                    probabilities.push_front(probability);
                     if probability >= speech_threshold {
                         if start_record_time.is_none() {
                             start_record_time.replace(Local::now());
                         }
-                        speech_audio_block.extend(samples);
+                        speech_audio_block.extend(result.samples());
                     }
-                    probabilities.push_front(probability);
                     if start_record_time.is_some()
                         && probabilities
                             .iter()
-                            .take(audio_tolerance)
+                            .take(silence_streak_count)
                             .all(|&probability| probability < speech_threshold)
                     {
                         let speech_extractor_result = VocalIsolationResult::new(

@@ -2,13 +2,13 @@ use crate::audio::context::AudioContext;
 use std::sync::{Arc, Mutex, RwLock};
 use tauri::State;
 
-pub const DEFAULT_TOLERANCE: usize = 1;
-
 pub const DEFAULT_MICROPHONE_GAIN: f32 = 1.0;
 
 pub const DEFAULT_SPEECH_THRESHOLD: f32 = 0.5;
 
 pub const DEFAULT_AUDIO_GAP_THRESHOLD: f32 = 0.5;
+
+pub const DEFAULT_SILENCE_STREAK_COUNT: usize = 1;
 
 pub const DEFAULT_ASR_SERVICE_URL: &str = "http://10.150.112.34:50051";
 
@@ -16,10 +16,10 @@ pub struct AppState {
     speaker: Arc<RwLock<String>>,
     meeting_room: Arc<RwLock<String>>,
     asr_service_url: Arc<RwLock<String>>,
-    audio_tolerance: Arc<RwLock<usize>>,
     microphone_gain: Arc<RwLock<f32>>,
     speech_threshold: Arc<RwLock<f32>>,
     audio_gap_threshold: Arc<RwLock<f32>>,
+    silence_streak_count: Arc<RwLock<usize>>,
     recording_context: Arc<Mutex<Option<AudioContext>>>,
     human_voice_detection_context: Arc<Mutex<Option<AudioContext>>>,
 }
@@ -30,10 +30,10 @@ impl AppState {
             speaker: Arc::new(RwLock::new(whoami::username())),
             meeting_room: Arc::new(RwLock::new(whoami::fallible::hostname().unwrap_or(whoami::username()))),
             asr_service_url: Arc::new(RwLock::new(DEFAULT_ASR_SERVICE_URL.to_string())),
-            audio_tolerance: Arc::new(RwLock::new(DEFAULT_TOLERANCE)),
             microphone_gain: Arc::new(RwLock::new(DEFAULT_MICROPHONE_GAIN)),
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
             audio_gap_threshold: Arc::new(RwLock::new(DEFAULT_AUDIO_GAP_THRESHOLD)),
+            silence_streak_count: Arc::new(RwLock::new(DEFAULT_SILENCE_STREAK_COUNT)),
             recording_context: Arc::new(None.into()),
             human_voice_detection_context: Arc::new(None.into()),
         }
@@ -66,12 +66,12 @@ impl AppState {
         Ok(true)
     }
 
-    pub fn set_audio_tolerance(&self, tolerance: usize) -> Result<bool, String> {
-        let mut tolerance_lock = self
-            .audio_tolerance
+    pub fn set_silence_streak_count_lock(&self, silence_streak_count: usize) -> Result<bool, String> {
+        let mut silence_streak_count_lock = self
+            .silence_streak_count
             .write()
-            .map_err(|err| format!("Failed to lock audio tolerance: {}", err))?;
-        *tolerance_lock = tolerance;
+            .map_err(|err| format!("Failed to lock silence streak count locke: {}", err))?;
+        *silence_streak_count_lock = silence_streak_count;
         Ok(true)
     }
 
@@ -135,8 +135,8 @@ impl AppState {
         self.asr_service_url.clone()
     }
 
-    pub fn get_audio_tolerance(&self) -> Arc<RwLock<usize>> {
-        self.audio_tolerance.clone()
+    pub fn get_silence_streak_count_lock(&self) -> Arc<RwLock<usize>> {
+        self.silence_streak_count.clone()
     }
 
     pub fn get_microphone_gain(&self) -> Arc<RwLock<f32>> {
@@ -147,7 +147,7 @@ impl AppState {
         self.speech_threshold.clone()
     }
 
-    pub fn get_speech_merge_threshold(&self) -> Arc<RwLock<f32>> {
+    pub fn get_audio_gap_threshold(&self) -> Arc<RwLock<f32>> {
         self.audio_gap_threshold.clone()
     }
 
@@ -176,8 +176,8 @@ pub fn set_asr_service_url(app_state: State<'_, AppState>, asr_service_url: Stri
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn set_audio_tolerance(app_state: State<'_, AppState>, audio_tolerance: usize) -> Result<bool, String> {
-    app_state.set_audio_tolerance(audio_tolerance)
+pub fn set_silence_streak_count(app_state: State<'_, AppState>, silence_streak_count: usize) -> Result<bool, String> {
+    app_state.set_silence_streak_count_lock(silence_streak_count)
 }
 
 #[tauri::command(rename_all = "snake_case")]

@@ -15,8 +15,8 @@ import {
     SpeechThresholdAdjust
 } from "@src/components/desktop-app/app-settings/speech-threshold-adjust/speech-threshold-adjust.tsx";
 import {
-    AudioToleranceAdjust
-} from "@src/components/desktop-app/app-settings/audio-tolerance-adjust/audio-tolerance-adjust.tsx";
+    SilenceStreakCountAdjust
+} from "@src/components/desktop-app/app-settings/silence-streak-count-adjust/silence-streak-count-adjust.tsx";
 import {
     AudioGapThresholdAdjust
 } from "@src/components/desktop-app/app-settings/audio-gap-threshold-adjust/audio-gap-threshold-adjust.tsx";
@@ -36,9 +36,9 @@ export const AppSettings = () => {
                 <Card title="Microphone Settings" variant="borderless" hoverable>
                     <LabelBlock label="Microphone Select" content={<MicrophoneSelect/>}/>
                     <LabelBlock label="Microphone Gain Adjust" content={<MicrophoneGainAdjust/>}/>
-                    <LabelBlock label="Audio Tolerance Adjust" content={<AudioToleranceAdjust/>}/>
                     <LabelBlock label="Speech Threshold Adjust" content={<SpeechThresholdAdjust/>}/>
-                    <LabelBlock label="Audio Gao Threshold Adjust" content={<AudioGapThresholdAdjust/>}/>
+                    <LabelBlock label="Silence Streak Count Adjust" content={<SilenceStreakCountAdjust/>}/>
+                    <LabelBlock label="Audio Gap Threshold Adjust" content={<AudioGapThresholdAdjust/>}/>
                     <LabelBlock label="Human Voice Detection" content={<MicrophoneHumanVoiceDetection/>}/>
                 </Card>
             </Space>

@@ -1,31 +1,20 @@
 .desktop-welcome {
-  width: 70%;
   margin: auto;
   color: #D0D4D9;
-  padding-top: 20vh;
   text-align: center;
-  height: calc(100vh - 30px);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
-  h1 {
-    font-size: 40px;
-  }
-
-  h2 {
+  .desktop-welcome-content-title {
     font-size: 25px;
-    color: rgba(255, 255, 255, 0.65);
-  }
-
-  h3 {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.65);
   }
 
   .desktop-welcome-content-button {
-    padding-top: 30px;
-
     button {
-      width: 100px;
-      height: 40px;
+      width: 200px;
     }
   }
 }

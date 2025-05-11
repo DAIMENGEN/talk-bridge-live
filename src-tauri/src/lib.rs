@@ -38,7 +38,7 @@ pub fn run() {
                 .timezone_strategy(TimezoneStrategy::UseLocal) // Set the time zone strategy to use the local time zone.
                 .build(),
         )
-        .setup(|_app| {
+        .setup(|app| {
             panic::set_hook(Box::new(|panic_info| {
                 log_error!("{:#?}", panic_info);
             }));

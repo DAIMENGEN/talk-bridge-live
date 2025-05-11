@@ -8,6 +8,8 @@
     "core:default",
     "opener:default",
     "core:window:allow-close",
-    "core:window:allow-start-dragging"
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-fullscreen",
+    "core:window:allow-set-always-on-top"
   ]
 }

@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Talk Bridge Live",
-        "width": 1152,
-        "height": 648,
+        "width": 1280,
+        "height": 720,
         "devtools": true,
         "transparent": true,
         "decorations": false

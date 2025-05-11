@@ -1,7 +1,10 @@
 .toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  cursor: grab;
   height: 30px;
+  cursor: grab;
 
   .toolbar-left {
     padding-left: 5px;

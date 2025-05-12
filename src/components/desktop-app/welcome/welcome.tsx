@@ -1,7 +1,7 @@
 import "./welcome.scss";
 import {Button, Space} from "antd";
-import {TranslateIcon01} from "@src/icons/translate/translate-icon-01.tsx";
 import {useNavigate} from "react-router-dom";
+import {InternationalIcon} from "@src/icons/international/international-icon.tsx";
 
 export const Welcome = () => {
     const navigate = useNavigate();
@@ -9,7 +9,7 @@ export const Welcome = () => {
         <div className={"welcome"}>
             <Space direction={"vertical"} size={"large"}>
                 <div className={"welcome-content-icon"}>
-                    <TranslateIcon01 width={100} height={100} color={"#91003c"}/>
+                    <InternationalIcon width={100} height={100} color={"#91003c"}/>
                 </div>
                 <div className={"welcome-content-title"}>
                     Talk Bridge Live

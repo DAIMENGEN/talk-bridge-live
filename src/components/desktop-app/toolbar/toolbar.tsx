@@ -3,7 +3,7 @@ import {Button, Flex} from "antd";
 import advantest from "@src/assets/svg/advantest.svg";
 import {getCurrentWindow} from "@tauri-apps/api/window";
 import {CloseOutlined, FullscreenExitOutlined, FullscreenOutlined, PushpinOutlined} from "@ant-design/icons";
-import {SettingsIcon01} from "@src/icons/settings/settings-icon-01.tsx";
+import {SettingsIcon} from "@src/icons/settings/settings-icon.tsx";
 import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {setIsOpenSettings} from "@src/store/features/app-settings-slice.ts";
 import ConditionalRenderer from "@src/components/conditional-renderer/conditional-renderer.tsx";
@@ -26,7 +26,7 @@ export const Toolbar = () => {
                 <ConditionalRenderer isVisible={isShowSettingsButton}
                                      childrenComponent={<Button type={"text"} onClick={() => {
                                          appDispatch(setIsOpenSettings(true));
-                                     }} icon={<SettingsIcon01 width={20} height={20} color={"#D0D4D9"}/>}/>}/>
+                                     }} icon={<SettingsIcon width={20} height={20} color={"#D0D4D9"}/>}/>}/>
                 <Button type={"text"}
                         icon={<PushpinOutlined style={{fontSize: 20, color: isAlwaysOnTop ? "#91003c" : "#D0D4D9"}}/>}
                         onClick={() => {

@@ -2,7 +2,7 @@ import React from "react";
 import Icon from "@ant-design/icons";
 import {StyleUtils} from "@src/style-utils.ts";
 
-export const IssueIcon01: React.FC<{ width: number, height: number, color: string }> = (props) => {
+export const IssueIcon: React.FC<{ width: number, height: number, color: string }> = (props) => {
     const issueIcon = () => (
         <svg className="issue-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
              width={`${StyleUtils.numberToPixels(props.width)}`} height={`${StyleUtils.numberToPixels(props.height)}`}>

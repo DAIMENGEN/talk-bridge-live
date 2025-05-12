@@ -2,9 +2,9 @@ import "./transcript-view.scss";
 import React from "react";
 import {Flex, Space} from "antd";
 import {Welcome as TextBlockView} from "@ant-design/x";
-import {SpeakerIcon01} from "@src/icons/speaker/speaker-icon-01.tsx";
-import {LikeIcon01} from "@src/icons/like/like-icon-01.tsx";
-import {MoreIcon01} from "@src/icons/more/more-icon-01.tsx";
+import {SpeakerIcon} from "@src/icons/speaker/speaker-icon.tsx";
+import {LikeIcon} from "@src/icons/like/like-icon.tsx";
+import {MoreIcon} from "@src/icons/more/more-icon.tsx";
 
 interface TranscriptViewProps {
     datetime: string;
@@ -24,13 +24,13 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({datetime, transcr
                                    </Space>
                                    <Space align={"end"} size={"middle"}>
                                        <div>
-                                           <SpeakerIcon01 width={15} height={15} color={"#D0D4D9"}/>
+                                           <SpeakerIcon width={15} height={15} color={"#D0D4D9"}/>
                                        </div>
                                        <div>
-                                           <LikeIcon01 width={15} height={15} color={"#D0D4D9"}/>
+                                           <LikeIcon width={15} height={15} color={"#D0D4D9"}/>
                                        </div>
                                        <div>
-                                           <MoreIcon01 width={15} height={15} color={"#D0D4D9"}/>
+                                           <MoreIcon width={15} height={15} color={"#D0D4D9"}/>
                                        </div>
                                    </Space>
                                </Flex>

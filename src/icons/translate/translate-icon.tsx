@@ -2,9 +2,9 @@ import React from "react";
 import Icon from "@ant-design/icons";
 import {StyleUtils} from "@src/style-utils.ts";
 
-export const TranslateIcon01: React.FC<{ width: number, height: number, color: string }> = (props) => {
+export const TranslateIcon: React.FC<{ width: number, height: number, color: string }> = (props) => {
     const translateIcon = () => (
-        <svg className="translate-icon-01" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+        <svg className="translate-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
              width={`${StyleUtils.numberToPixels(props.width)}`} height={`${StyleUtils.numberToPixels(props.height)}`}>
             <path
                 d="M908.507616 394.188804c-11.930727 0-23.166629-7.286963-27.628244-19.110243-56.646138-150.131299-202.556299-251.001661-363.074156-251.001661-132.98171 0-255.223822 66.964134-327.000566 179.130773-8.791224 13.733792-27.051099 17.743106-40.782845 8.952906-13.733792-8.789177-17.743106-27.045983-8.953929-40.779775C223.75204 142.168953 364.590696 65.029062 517.805216 65.029062c92.641957 0 181.517123 28.092825 257.016655 81.242326 73.791633 51.948139 129.572054 123.860982 161.304779 207.959356 5.756097 15.255449-1.946328 32.290427-17.200754 38.045501a29.40982 29.40982 0 0 1-10.41828 1.912559z"
@@ -22,7 +22,6 @@ export const TranslateIcon01: React.FC<{ width: number, height: number, color: s
                 d="M585.650417 591.21004H436.680571L397.213697 715.723891h-52.251038L483.373009 308.276109h57.252959L679.036317 715.723891h-54.474682l-38.911218-124.513851z m-12.784164-41.132816l-19.455098-62.257949c-15.008832-46.136783-27.792996-90.605577-41.133839-137.854695h-2.223644c-12.785188 47.804772-26.126031 91.717911-40.577161 137.854695l-20.011776 62.257949h123.401518z"
                 fill={props.color}></path>
         </svg>
-
     )
     return <Icon component={translateIcon} {...props}/>
 }

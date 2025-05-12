@@ -1,8 +1,14 @@
 import "./welcome.scss";
-import {Button, Space} from "antd";
+import {Button, FloatButton, Space} from "antd";
 import {useNavigate} from "react-router-dom";
-import {InternationalIcon} from "@src/icons/international/international-icon.tsx";
 import {LegalNotice} from "@src/components/desktop-app/legal-notice/legal-notice.tsx";
+import {InternationalIcon, MoreIcon} from "@src/icons";
+import {
+    AppAboutFloatButton,
+    CheckUpdateFloatButton,
+    ReportIssueFloatButton,
+    UserManualFloatButton
+} from "@src/components/float-buttons";
 
 export const Welcome = () => {
     const navigate = useNavigate();
@@ -22,6 +28,13 @@ export const Welcome = () => {
                 </Space>
             </Space>
             <LegalNotice/>
+            <FloatButton.Group trigger={"click"}
+                               icon={<MoreIcon width={20} height={20} color={"#141414"}/>}>
+                <UserManualFloatButton/>
+                <ReportIssueFloatButton/>
+                <AppAboutFloatButton/>
+                <CheckUpdateFloatButton/>
+            </FloatButton.Group>
         </div>
     )
 }

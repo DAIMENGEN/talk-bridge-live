@@ -2,6 +2,7 @@ import "./join-meeting.scss";
 import {Button, Input, Space} from "antd";
 import {useNavigate} from "react-router-dom";
 import {InternationalIcon} from "@src/icons/international/international-icon.tsx";
+import {LegalNotice} from "@src/components/desktop-app/legal-notice/legal-notice.tsx";
 
 export const JoinMeeting = () => {
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ export const JoinMeeting = () => {
                     <Button shape="round" size={"middle"} onClick={() => navigate("/welcome")}>Previous</Button>
                 </Space>
             </Space>
+            <LegalNotice/>
         </div>
     )
 }

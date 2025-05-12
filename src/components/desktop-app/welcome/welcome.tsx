@@ -2,6 +2,7 @@ import "./welcome.scss";
 import {Button, Space} from "antd";
 import {useNavigate} from "react-router-dom";
 import {InternationalIcon} from "@src/icons/international/international-icon.tsx";
+import {LegalNotice} from "@src/components/desktop-app/legal-notice/legal-notice.tsx";
 
 export const Welcome = () => {
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ export const Welcome = () => {
                     </div>
                 </Space>
             </Space>
+            <LegalNotice/>
         </div>
     )
 }

@@ -7,6 +7,7 @@ import {Provider} from "react-redux";
 import ReactDOM from "react-dom/client";
 import {appStore, persistor} from "@src/store/store.ts";
 import {PersistGate} from "redux-persist/integration/react";
+import {ADVANTEST_COLOR} from "@src/theme/theme.ts";
 
 init().then(() => {
     ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
@@ -15,7 +16,7 @@ init().then(() => {
                 <PersistGate persistor={persistor}>
                     <ConfigProvider theme={{
                         token: {
-                            colorPrimary: "#91003c"
+                            colorPrimary: ADVANTEST_COLOR
                         }
                     }}>
                         <App/>

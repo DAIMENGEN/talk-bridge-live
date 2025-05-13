@@ -8,6 +8,7 @@ import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {setIsOpenSettings} from "@src/store/features/app-settings-slice.ts";
 import ConditionalRenderer from "@src/components/conditional-renderer/conditional-renderer.tsx";
 import {useState} from "react";
+import {ADVANTEST_COLOR} from "@src/theme/theme.ts";
 
 export const Toolbar = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -28,7 +29,7 @@ export const Toolbar = () => {
                                          appDispatch(setIsOpenSettings(true));
                                      }} icon={<SettingsIcon width={20} height={20} color={"#D0D4D9"}/>}/>}/>
                 <Button type={"text"}
-                        icon={<PushpinOutlined style={{fontSize: 20, color: isAlwaysOnTop ? "#91003c" : "#D0D4D9"}}/>}
+                        icon={<PushpinOutlined style={{fontSize: 20, color: isAlwaysOnTop ? ADVANTEST_COLOR : "#D0D4D9"}}/>}
                         onClick={() => {
                             getCurrentWindow().setAlwaysOnTop(!isAlwaysOnTop).then(_ => {
                                 setIsAlwaysOnTop(!isAlwaysOnTop);

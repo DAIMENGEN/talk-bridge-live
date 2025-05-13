@@ -9,6 +9,7 @@ import {
     ReportIssueFloatButton,
     UserManualFloatButton
 } from "@src/components/float-buttons";
+import { ADVANTEST_COLOR } from "@src/theme/theme";
 
 export const Welcome = () => {
     const navigate = useNavigate();
@@ -16,7 +17,7 @@ export const Welcome = () => {
         <div className={"welcome"}>
             <Space direction={"vertical"} size={"large"}>
                 <div className={"welcome-content-icon"}>
-                    <InternationalIcon width={100} height={100} color={"#91003c"}/>
+                    <InternationalIcon width={100} height={100} color={ADVANTEST_COLOR}/>
                 </div>
                 <div className={"welcome-content-title"}>
                     Talk Bridge Live

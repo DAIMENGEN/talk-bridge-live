@@ -10,6 +10,7 @@ import {
     ReportIssueFloatButton,
     UserManualFloatButton
 } from "@src/components/float-buttons";
+import {ADVANTEST_COLOR} from "@src/theme/theme.ts";
 
 export const JoinMeeting = () => {
     const navigate = useNavigate();
@@ -20,7 +21,7 @@ export const JoinMeeting = () => {
             {contextHolder}
             <Space direction={"vertical"} size={"large"}>
                 <div className={"welcome-content-icon"}>
-                    <InternationalIcon width={100} height={100} color={"#91003c"}/>
+                    <InternationalIcon width={100} height={100} color={ADVANTEST_COLOR}/>
                 </div>
                 <Space direction={"vertical"} size={"middle"}>
                     <Space direction={"vertical"} className={"join-meeting-content-input"} size={"small"}>

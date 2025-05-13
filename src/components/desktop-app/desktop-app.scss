@@ -1,6 +1,8 @@
+@use "@src/theme/theme.scss" as *;
+
 .desktop-app {
   height: 100vh;
-  background: #141414;
+  background: $app-background-color;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }

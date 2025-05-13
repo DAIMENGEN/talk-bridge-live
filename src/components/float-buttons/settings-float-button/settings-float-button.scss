@@ -1,0 +1,53 @@
+.setting-draggable-modal {
+  .ant-modal-content {
+    padding: unset;
+    height: 80vh;
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+    background-color: #141414;
+
+    .ant-modal-close {
+      top: unset;
+    }
+
+    .ant-modal-header {
+      margin-bottom: unset;
+      background: #D0D4D9;
+
+      .ant-modal-title {
+        height: 30px;
+        color: #141414;
+        line-height: 30px;
+        padding-left: 10px;
+      }
+    }
+
+    .ant-modal-body {
+      height: calc(80vh - 30px);
+      line-height: unset;
+
+      .ant-layout {
+        height: 100%;
+        background: unset;
+        .ant-layout-sider {
+          width: 25%;
+          color: #D0D4D9;
+          background: #141414;
+        }
+
+        .ant-layout-header {
+          color: #D0D4D9;
+          height: 40px;
+          padding: unset;
+          line-height: unset;
+          background: #141414;
+        }
+
+        .ant-layout-content {
+          color: #D0D4D9;
+          background: #141414;
+        }
+      }
+    }
+  }
+}

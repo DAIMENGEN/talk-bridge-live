@@ -11,3 +11,5 @@ export {TranslateIcon} from "./translate/translate-icon.tsx";
 export {UpdateBadgeIcon} from "./update/update-badge-icon.tsx";
 export {UpdateDoneIcon} from "./update/update-done-icon.tsx";
 export {UpdateIcon} from "./update/update-icon.tsx";
+export {AudioIcon} from "./audio/audio-icon.tsx";
+export {PrivacyIcon} from "./privacy/privacy-icon.tsx";

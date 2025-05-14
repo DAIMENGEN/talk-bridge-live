@@ -1,11 +1,29 @@
 import "./settings-float-button.scss";
-import {SettingsIcon} from "@src/icons";
-import {FloatButton, Layout} from "antd";
+import {AudioIcon, PrivacyIcon, SettingsIcon} from "@src/icons";
+import {FloatButton, Layout, Menu} from "antd";
 import {useState} from "react";
 import {DraggableModal} from "@src/components/common";
 import {DARK_MODE_BACKGROUND_COLOR} from "@src/theme/theme.ts";
+import {MenuItem} from "@src/types.ts";
 
 export const SettingsFloatButton = () => {
+    const items: MenuItem[] = [
+        {
+            key: '1',
+            icon: <SettingsIcon width={20} height={20} color={"#D0D4D9"}/>,
+            label: "General",
+        },
+        {
+            key: '2',
+            icon: <AudioIcon width={20} height={20} color={"#D0D4D9"}/>,
+            label: "Audio",
+        },
+        {
+            key: '3',
+            icon: <PrivacyIcon width={20} height={20} color={"#D0D4D9"}/>,
+            label: "Privacy",
+        },
+    ];
     const [openSettings, setOpenSettings] = useState(false);
     return (
         <>
@@ -26,7 +44,7 @@ export const SettingsFloatButton = () => {
                             onCancel={() => setOpenSettings(false)}>
                 <Layout>
                     <Layout.Sider>
-                        Sider
+                        <Menu mode="inline" theme={"dark"} items={items}/>
                     </Layout.Sider>
                     <Layout>
                         <Layout.Header>

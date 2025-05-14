@@ -13,3 +13,5 @@ export {UpdateDoneIcon} from "./update/update-done-icon.tsx";
 export {UpdateIcon} from "./update/update-icon.tsx";
 export {AudioIcon} from "./audio/audio-icon.tsx";
 export {PrivacyIcon} from "./privacy/privacy-icon.tsx";
+export {MicrophoneOffIcon} from "./microphone/microphone-off-icon.tsx";
+export {MicrophoneOnIcon} from "./microphone/microphone-on-icon.tsx";

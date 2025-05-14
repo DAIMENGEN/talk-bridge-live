@@ -1,3 +1,4 @@
+@use "@src/theme/theme.scss" as *;
 .microphone-volume-bars {
   display: flex;
   align-items: flex-end;
@@ -12,7 +13,7 @@
   .mic-bar {
     flex: 1;
     height: 30px;
-    background-color: #D0D4D9;
+    background-color: $dark-mode-font-color;
     transition: background-color 0.2s;
   }
 }

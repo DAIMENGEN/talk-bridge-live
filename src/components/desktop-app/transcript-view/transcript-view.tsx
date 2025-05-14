@@ -5,6 +5,7 @@ import {Welcome as TextBlockView} from "@ant-design/x";
 import {SpeakerIcon} from "@src/icons/speaker/speaker-icon.tsx";
 import {LikeIcon} from "@src/icons/like/like-icon.tsx";
 import {MoreIcon} from "@src/icons/more/more-icon.tsx";
+import {DARK_MODE_FONT_COLOR} from "@src/theme/theme.ts";
 
 interface TranscriptViewProps {
     datetime: string;
@@ -24,13 +25,13 @@ export const TranscriptView: React.FC<TranscriptViewProps> = ({datetime, transcr
                                    </Space>
                                    <Space align={"end"} size={"middle"}>
                                        <div>
-                                           <SpeakerIcon width={15} height={15} color={"#D0D4D9"}/>
+                                           <SpeakerIcon width={15} height={15} color={DARK_MODE_FONT_COLOR}/>
                                        </div>
                                        <div>
-                                           <LikeIcon width={15} height={15} color={"#D0D4D9"}/>
+                                           <LikeIcon width={15} height={15} color={DARK_MODE_FONT_COLOR}/>
                                        </div>
                                        <div>
-                                           <MoreIcon width={15} height={15} color={"#D0D4D9"}/>
+                                           <MoreIcon width={15} height={15} color={DARK_MODE_FONT_COLOR}/>
                                        </div>
                                    </Space>
                                </Flex>

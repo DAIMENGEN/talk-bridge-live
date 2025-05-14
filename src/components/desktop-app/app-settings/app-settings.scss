@@ -1,5 +1,6 @@
+@use "@src/theme/theme.scss" as *;
 .app-settings.ant-drawer-content {
-  color: #D0D4D9;
+  color: $dark-mode-font-color;
   overflow: auto;
   background: #1d2125;
   backdrop-filter: blur(20px);
@@ -13,12 +14,12 @@
       background-color: #2a2f34;
 
       .ant-card-head {
-        color: #D0D4D9;
+        color: $dark-mode-font-color;
         border-bottom: 1px solid #f0f0f024;
       }
 
       .ant-card-body {
-        color: #D0D4D9;
+        color: $dark-mode-font-color;
       }
     }
   }

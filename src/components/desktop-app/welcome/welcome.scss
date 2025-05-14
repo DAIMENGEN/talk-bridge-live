@@ -1,6 +1,7 @@
+@use "@src/theme/theme.scss" as *;
 .welcome {
   margin: auto;
-  color: #D0D4D9;
+  color: $dark-mode-font-color;
   text-align: center;
   height: 100vh;
   display: flex;

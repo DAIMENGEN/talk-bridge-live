@@ -10,7 +10,7 @@ import {
     ReportIssueFloatButton,
     UserManualFloatButton
 } from "@src/components/float-buttons";
-import {ADVANTEST_COLOR} from "@src/theme/theme.ts";
+import {ADVANTEST_COLOR, DARK_MODE_BACKGROUND_COLOR} from "@src/theme/theme.ts";
 
 export const JoinMeeting = () => {
     const navigate = useNavigate();
@@ -40,7 +40,7 @@ export const JoinMeeting = () => {
             </Space>
             <LegalNotice/>
             <FloatButton.Group trigger={"click"}
-                               icon={<MoreIcon width={20} height={20} color={"#141414"}/>}>
+                               icon={<MoreIcon width={20} height={20} color={DARK_MODE_BACKGROUND_COLOR}/>}>
                 <UserManualFloatButton/>
                 <ReportIssueFloatButton/>
                 <AppAboutFloatButton/>

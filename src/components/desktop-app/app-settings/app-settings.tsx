@@ -20,6 +20,7 @@ import {
 import {
     AudioGapThresholdAdjust
 } from "@src/components/desktop-app/app-settings/audio-gap-threshold-adjust/audio-gap-threshold-adjust.tsx";
+import {DARK_MODE_FONT_COLOR} from "@src/theme/theme.ts";
 
 export const AppSettings = () => {
     const appDispatch = useAppDispatch();
@@ -30,7 +31,7 @@ export const AppSettings = () => {
                 className={"app-settings"}
                 width={"80%"}
                 destroyOnClose={true}
-                closeIcon={<CloseOutlined style={{fontSize: 20, color: "#D0D4D9"}}/>}
+                closeIcon={<CloseOutlined style={{fontSize: 20, color: DARK_MODE_FONT_COLOR}}/>}
                 onClose={() => appDispatch(setIsOpenSettings(false))}>
             <Space direction="vertical" size="middle" style={{display: 'flex'}}>
                 <Card title="Microphone Settings" variant="borderless" hoverable>

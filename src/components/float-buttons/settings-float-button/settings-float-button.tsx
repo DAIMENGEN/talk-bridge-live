@@ -3,12 +3,13 @@ import {SettingsIcon} from "@src/icons";
 import {FloatButton, Layout} from "antd";
 import {useState} from "react";
 import {DraggableModal} from "@src/components/common";
+import {DARK_MODE_BACKGROUND_COLOR} from "@src/theme/theme.ts";
 
 export const SettingsFloatButton = () => {
     const [openSettings, setOpenSettings] = useState(false);
     return (
         <>
-            <FloatButton icon={<SettingsIcon width={20} height={20} color={"#141414"}/>}
+            <FloatButton icon={<SettingsIcon width={20} height={20} color={DARK_MODE_BACKGROUND_COLOR}/>}
                          tooltip={"Settings"}
                          onClick={() => setOpenSettings(true)}
             />

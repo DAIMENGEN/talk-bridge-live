@@ -8,7 +8,7 @@ import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {setIsOpenSettings} from "@src/store/features/app-settings-slice.ts";
 import ConditionalRenderer from "@src/components/conditional-renderer/conditional-renderer.tsx";
 import {useState} from "react";
-import {ADVANTEST_COLOR} from "@src/theme/theme.ts";
+import {ADVANTEST_COLOR, DARK_MODE_FONT_COLOR} from "@src/theme/theme.ts";
 
 export const Toolbar = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -27,9 +27,9 @@ export const Toolbar = () => {
                 <ConditionalRenderer isVisible={isShowSettingsButton}
                                      childrenComponent={<Button type={"text"} onClick={() => {
                                          appDispatch(setIsOpenSettings(true));
-                                     }} icon={<SettingsIcon width={20} height={20} color={"#D0D4D9"}/>}/>}/>
+                                     }} icon={<SettingsIcon width={20} height={20} color={DARK_MODE_FONT_COLOR}/>}/>}/>
                 <Button type={"text"}
-                        icon={<PushpinOutlined style={{fontSize: 20, color: isAlwaysOnTop ? ADVANTEST_COLOR : "#D0D4D9"}}/>}
+                        icon={<PushpinOutlined style={{fontSize: 20, color: isAlwaysOnTop ? ADVANTEST_COLOR : DARK_MODE_FONT_COLOR}}/>}
                         onClick={() => {
                             getCurrentWindow().setAlwaysOnTop(!isAlwaysOnTop).then(_ => {
                                 setIsAlwaysOnTop(!isAlwaysOnTop);
@@ -37,15 +37,15 @@ export const Toolbar = () => {
                         }}
                 />
                 <Button type={"text"}
-                        icon={isFullscreen ? <FullscreenExitOutlined style={{fontSize: 20, color: "#D0D4D9"}}/> :
-                            <FullscreenOutlined style={{fontSize: 20, color: "#D0D4D9"}}/>}
+                        icon={isFullscreen ? <FullscreenExitOutlined style={{fontSize: 20, color: DARK_MODE_FONT_COLOR}}/> :
+                            <FullscreenOutlined style={{fontSize: 20, color: DARK_MODE_FONT_COLOR}}/>}
                         onClick={() => {
                             getCurrentWindow().setFullscreen(!isFullscreen).then(_ => {
                                 setIsFullscreen(!isFullscreen);
                             });
                         }}
                 />
-                <Button type={"text"} icon={<CloseOutlined style={{fontSize: 20, color: "#D0D4D9"}}/>}
+                <Button type={"text"} icon={<CloseOutlined style={{fontSize: 20, color: DARK_MODE_FONT_COLOR}}/>}
                         onClick={() => getCurrentWindow().close()}/>
             </div>
         </Flex>

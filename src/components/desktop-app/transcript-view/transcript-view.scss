@@ -1,3 +1,4 @@
+@use "@src/theme/theme.scss" as *;
 .transcript-view {
   padding-left: 10px;
   padding-right: 10px;
@@ -8,12 +9,12 @@
   }
 
   .transcript-view-title {
-    color: #D0D4D9;
+    color: $dark-mode-font-color;
     font-size: 14px;
   }
 
   .transcript-view-body {
-    color: #D0D4D9;
+    color: $dark-mode-font-color;
     font-size: 14px ;
   }
 }

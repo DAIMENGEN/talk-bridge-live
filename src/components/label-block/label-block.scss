@@ -1,6 +1,7 @@
+@use "@src/theme/theme.scss" as *;
 .label-block {
   .label-block-label {
-    color: #D0D4D9;
+    color: $dark-mode-font-color;
     font-size: 16px;
     padding: 10px 0 10px 0;
   }

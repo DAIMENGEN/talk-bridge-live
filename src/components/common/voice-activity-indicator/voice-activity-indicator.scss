@@ -1,0 +1,22 @@
+@use "@src/theme/theme.scss" as *;
+.voice-activity-indicator {
+  gap: 2px;
+  width: 100%;
+  display: flex;
+  max-height: 20px;
+
+  .bar {
+    flex: 1;
+    height: 20px;
+    transition: background-color 0.2s;
+    background-color: $dark-mode-font-color;
+  }
+
+  .nominal-bar {
+    background-color: #22C55E;
+  }
+
+  .presence-bar {
+    background-color: #4FC3F799;
+  }
+}

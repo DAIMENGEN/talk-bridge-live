@@ -60,7 +60,7 @@
         }
 
         .ant-layout {
-          padding: 5px;
+          padding: 10px;
           border-left: 1px solid #2b2b2b;
 
           .ant-layout-header {
@@ -74,10 +74,71 @@
           .ant-layout-content {
             color: $dark-mode-font-color;
             background: $dark-mode-background-color;
-          }
 
+            .speaker-text {
+              font-size: 20px;
+            }
+
+            .microphone-text {
+              font-size: 20px;
+            }
+
+            .select-container {
+              display: flex;
+
+              .ant-space-item:first-child {
+                flex: 1;
+              }
+
+              .speaker-select {
+                width: 100%;
+
+                .ant-select-selector {
+                  color: $dark-mode-font-color;
+                  border: 1px solid #2a2a2a;
+                  background: $dark-mode-background-color;
+
+                  .ant-select-selection-item {
+                    color: $dark-mode-font-color;
+                  }
+                }
+              }
+
+              .microphone-select {
+                width: 100%;
+
+                .ant-select-selector {
+                  color: $dark-mode-font-color;
+                  border: 1px solid #2a2a2a;
+                  background: $dark-mode-background-color;
+
+                  .ant-select-selection-item {
+                    color: $dark-mode-font-color;
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
+  }
+}
+
+.speaker-select-options {
+  border: 1px solid #2a2a2a;
+  background: $dark-mode-background-color;
+
+  .ant-select-item {
+    color: $dark-mode-font-color;
+  }
+}
+
+.microphone-select-options {
+  border: 1px solid #2a2a2a;
+  background: $dark-mode-background-color;
+
+  .ant-select-item {
+    color: $dark-mode-font-color;
   }
 }

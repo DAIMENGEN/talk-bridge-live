@@ -15,3 +15,4 @@ export {AudioIcon} from "./audio/audio-icon.tsx";
 export {PrivacyIcon} from "./privacy/privacy-icon.tsx";
 export {MicrophoneOffIcon} from "./microphone/microphone-off-icon.tsx";
 export {MicrophoneOnIcon} from "./microphone/microphone-on-icon.tsx";
+export {SplitterIcon} from "./splitter/splitter-icon.tsx";

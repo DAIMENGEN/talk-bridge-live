@@ -75,11 +75,7 @@
             color: $dark-mode-font-color;
             background: $dark-mode-background-color;
 
-            .speaker-text {
-              font-size: 20px;
-            }
-
-            .microphone-text {
+            .speaker-text, .microphone-text {
               font-size: 20px;
             }
 
@@ -90,32 +86,33 @@
                 flex: 1;
               }
 
-              .speaker-select {
+              .speaker-select, .microphone-select {
                 width: 100%;
 
                 .ant-select-selector {
                   color: $dark-mode-font-color;
                   border: 1px solid #2a2a2a;
                   background: $dark-mode-background-color;
+                  box-shadow: unset;
 
                   .ant-select-selection-item {
                     color: $dark-mode-font-color;
                   }
+                }
+
+                .ant-select-selector:hover {
+                  background: #2a2a2a;
                 }
               }
 
-              .microphone-select {
-                width: 100%;
+              .ant-btn {
+                border: 1px solid #2a2a2a;
+                color: $dark-mode-font-color;
+                background: $dark-mode-background-color;
+              }
 
-                .ant-select-selector {
-                  color: $dark-mode-font-color;
-                  border: 1px solid #2a2a2a;
-                  background: $dark-mode-background-color;
-
-                  .ant-select-selection-item {
-                    color: $dark-mode-font-color;
-                  }
-                }
+              .ant-btn:hover {
+                background: #2a2a2a;
               }
             }
           }
@@ -125,16 +122,7 @@
   }
 }
 
-.speaker-select-options {
-  border: 1px solid #2a2a2a;
-  background: $dark-mode-background-color;
-
-  .ant-select-item {
-    color: $dark-mode-font-color;
-  }
-}
-
-.microphone-select-options {
+.speaker-select-options, .microphone-select-options {
   border: 1px solid #2a2a2a;
   background: $dark-mode-background-color;
 

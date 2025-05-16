@@ -8,7 +8,8 @@
   .bar {
     flex: 1;
     height: 20px;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s ease;
+    border-radius: 2px;
     background-color: $dark-mode-font-color;
   }
 

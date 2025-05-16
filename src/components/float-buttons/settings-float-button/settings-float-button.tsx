@@ -1,6 +1,6 @@
 import "./settings-float-button.scss";
 import {AudioIcon, PrivacyIcon, SettingsIcon} from "@src/icons";
-import {Button, FloatButton, Layout, Menu, Select, Space} from "antd";
+import {Button, FloatButton, Layout, Menu, Select, Slider, Space} from "antd";
 import {useCallback, useEffect, useState} from "react";
 import {DraggableModal, VoiceActivityIndicator} from "@src/components/common";
 import {DARK_MODE_BACKGROUND_COLOR, DARK_MODE_FONT_COLOR} from "@src/theme/theme.ts";
@@ -47,7 +47,7 @@ export const SettingsFloatButton = () => {
             />
             <DraggableModal closable
                             footer={null}
-                            width={"80%"}
+                            width={"85%"}
                             centered={true}
                             title={"Settings"}
                             open={openSettings}
@@ -118,7 +118,18 @@ export const AudioSettings = () => {
                                     popupClassName={"speaker-select-options"}/>
                             <Button>Test</Button>
                         </Space>
-                        <VoiceActivityIndicator probability={0.85}/>
+                        <div className={"indicator-container"}>
+                            <div>Output Volume</div>
+                            <VoiceActivityIndicator probability={0.85}/>
+                        </div>
+                        <div className={"slider-container"}>
+                            <div>Volume</div>
+                            <Slider styles={{
+                                root: {
+                                    width: "100%"
+                                }
+                            }}/>
+                        </div>
                     </Space>
                     <Space direction="vertical" size="middle" style={{display: "flex"}}>
                         <div className={"microphone-text"}>
@@ -129,7 +140,18 @@ export const AudioSettings = () => {
                                     popupClassName={"microphone-select-options"}/>
                             <Button>Test</Button>
                         </Space>
-                        <VoiceActivityIndicator probability={0.75}/>
+                        <div className={"indicator-container"}>
+                            <div>Input Volume</div>
+                            <VoiceActivityIndicator probability={0.75}/>
+                        </div>
+                        <div className={"slider-container"}>
+                            <div>Volume</div>
+                            <Slider styles={{
+                                root: {
+                                    width: "100%"
+                                }
+                            }}/>
+                        </div>
                     </Space>
                 </Space>
             </Layout.Content>

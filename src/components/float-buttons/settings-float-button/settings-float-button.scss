@@ -115,6 +115,18 @@
                 background: #2a2a2a;
               }
             }
+
+            .indicator-container, .slider-container {
+              gap: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              div:first-child {
+                width: 130px;
+                font-size: 16px;
+                text-align: right;
+              }
+            }
           }
         }
       }

@@ -36,8 +36,8 @@ impl AudioContext {
         }
     }
 
-    pub fn close(&self) {
-        self.microphone.pause();
+    pub fn close(&mut self) {
+        self.microphone.exit();
     }
 
     pub fn connect_audio_node(&mut self, audio_node: AudioNodeType) {

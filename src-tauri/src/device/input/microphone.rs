@@ -6,22 +6,27 @@ use dasp::interpolate::linear::Linear;
 use dasp::{signal, Signal};
 use std::error::Error;
 use tokio::sync::mpsc;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::{Receiver, Sender};
 
 pub struct Microphone {
     pub device: Device,
     stream: Option<cpal::Stream>,
     sample_rate: VadSampleRate, // Control the sample rate of the Microphone input. This is related to the sample rate required by the VAD (Voice Activity Detection).
     output_frames_size: VadSampleSize, // Control the size of the sample batch sent externally after resampling the Microphone input. This is related to the sample size required by the VAD (Voice Activity Detection).
+    sender: Option<Sender<Vec<f32>>>,
+    output_source: Option<Receiver<Vec<f32>>>,
 }
 
 
 
 impl Microphone {
     pub fn new(device: Device) -> Self {
+        let (sender, output_source) = mpsc::channel::<Vec<f32>>(1024);
         Microphone {
             device,
             stream: None,
+            sender: Some(sender),
+            output_source: Some(output_source),
             sample_rate: VadSampleRate::_16Khz,
             output_frames_size: VadSampleSize::_512,
         }
@@ -35,7 +40,7 @@ impl Microphone {
         let min_frame_size = output_frames_size * (original_sample_rate / target_sample_rate);
         let microphone_name = self.get_name();
         let sample_format = self.get_original_sample_format();
-        let (tx, rx) = mpsc::channel::<Vec<f32>>(100);
+        let sender = self.sender.clone();
         let mut input_buffer: Vec<f32> = vec![];
         match sample_format {
             SampleFormat::F32 => {
@@ -47,8 +52,8 @@ impl Microphone {
                         if input_buffer.len() >= min_frame_size {
                             let samples = input_buffer.drain(0..min_frame_size).collect();
                             let samples = Microphone::resample(original_sample_rate, target_sample_rate, samples);
-                            if let Err(err) = tx.blocking_send(samples) {
-                                log_error!("Microphone send samples error: {}", err);
+                            if let Err(err) = sender.as_ref().unwrap().blocking_send(samples) {
+                                log_error!("Microphone failed to send sampled data: {}", err);
                             }
                         }
                     },
@@ -76,17 +81,23 @@ impl Microphone {
                 );
             }
         };
-        Ok(rx)
+        let receiver = self.output_source.take().unwrap_or_else(|| {
+            panic!("Failed to take output source from microphone: output source is None")
+        });
+        Ok(receiver)
     }
     #[allow(dead_code)]
     pub fn exit(&mut self) {
         if let Some(stream) = self.stream.take() {
-            stream.pause().unwrap_or_else(|_| {
+            if let Err(err) = stream.pause() {
                 self.stream = Some(stream);
-                log_error!("Microphone {} stream exit error.", self.get_name());
-            });
-        } else { 
-            log_info!("Microphone {} stream was already stopped.", self.get_name());
+                log_error!("Microphone {} exit error: {}.", self.get_name(), err);
+                return;
+            }
+            self.sender = None;
+            log_info!("Microphone {} was exited.", self.get_name());
+        } else {
+            log_info!("Microphone {} was already exited.", self.get_name());
         }
     }
     pub fn play(&self) {
@@ -108,6 +119,7 @@ impl Microphone {
             }
         }
     }
+    #[allow(dead_code)]
     pub fn pause(&self) {
         if let Some(stream) = &self.stream {
             match stream.pause() {

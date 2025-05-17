@@ -124,14 +124,14 @@ pub async fn human_voice_detection(
     }
 }
 #[tauri::command]
-pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Result<bool, String> {
+pub fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Result<bool, String> {
     let human_voice_detection_context = app_state.get_human_voice_detection_context();
     let mut human_voice_detection_context_lock = human_voice_detection_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
     // Here, ownership of context is taken from app_state using take.
     // Once it's taken, app_state no longer owns context, and everything related to context will be dropped and cleaned up.
-    if let Some(context) = human_voice_detection_context_lock.take() {
+    if let Some(mut context) = human_voice_detection_context_lock.take() {
         context.close();
     }
     Ok(true)

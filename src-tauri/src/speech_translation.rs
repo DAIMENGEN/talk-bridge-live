@@ -7,12 +7,12 @@ use crate::{log_error, AppState};
 use tauri::{AppHandle, Emitter, State};
 
 #[tauri::command(rename_all = "snake_case")]
-pub async fn start_recording(
+pub fn start_recording(
     app: AppHandle,
     app_state: State<'_, AppState>,
     device_name: String,
 ) -> Result<String, String> {
-    match get_microphone_by_name(&device_name).await {
+    match get_microphone_by_name(&device_name) {
         Ok(device) => {
             const EVENT_NAME: &str = "transcript_result_event";
             let microphone = Microphone::new(device);
@@ -84,7 +84,7 @@ pub fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, String> {
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;
     // Here, ownership of context is taken from app_state using take.
     // Once it's taken, app_state no longer owns context, and everything related to context will be dropped and cleaned up.
-    if let Some(context) = recording_context_lock.take() {
+    if let Some(mut context) = recording_context_lock.take() {
         context.close();
     }
     Ok(true)

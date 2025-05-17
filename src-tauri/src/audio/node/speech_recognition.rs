@@ -73,7 +73,7 @@ impl SpeechRecognitionResult {
 
 pub struct SpeechRecognitionNode {
     model_path: Arc<RwLock<PathBuf>>,
-    sender: Sender<SpeechRecognitionResult>,
+    sender: Option<Sender<SpeechRecognitionResult>>,
     input_source: Option<Receiver<ConcatenationResult>>,
     output_source: Option<Receiver<SpeechRecognitionResult>>,
 }
@@ -90,7 +90,7 @@ impl SpeechRecognitionNode {
             default_model_path
         );
         SpeechRecognitionNode {
-            sender,
+            sender: Some(sender),
             model_path: Arc::new(RwLock::new(default_model_path)),
             input_source: None,
             output_source: Some(output_source),
@@ -108,7 +108,7 @@ impl SpeechRecognitionNode {
             .create_state()
             .unwrap_or_else(|err| panic!("Failed to create whisper state: {}", err))
     }
-    
+
     pub fn create_whisper_full_params() -> FullParams<'static, 'static> {
         let mut whisper_full_params = FullParams::new(SamplingStrategy::Greedy { best_of: 0 });
         whisper_full_params.set_language(Some("auto"));
@@ -166,11 +166,21 @@ impl AudioNode<ConcatenationResult, SpeechRecognitionResult> for SpeechRecogniti
                         speech_data.clone(),
                         speech_text,
                     );
-                    if let Err(err) = sender.send(speech_recognition_result).await {
+                    if let Err(err) = sender
+                        .as_ref()
+                        .unwrap()
+                        .send(speech_recognition_result)
+                        .await
+                    {
                         log_warn!("Speech recognition node failed to send speech recognition result to the output source: {}", err);
                     }
                 }
+                log_info!("Speech recognition node has been stopped.");
             });
         }
+    }
+
+    fn deactivate(&mut self) {
+        self.sender = None;
     }
 }

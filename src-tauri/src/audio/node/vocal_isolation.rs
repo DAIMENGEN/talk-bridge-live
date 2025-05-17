@@ -2,7 +2,7 @@ use crate::app_state::{DEFAULT_SILENCE_STREAK_COUNT, DEFAULT_SPEECH_THRESHOLD};
 use crate::audio::node::voice_activity_detection::VoiceActivityDetectionResult;
 use crate::audio::node::AudioNode;
 use crate::audio::{AudioBlock, AudioSample};
-use crate::log_warn;
+use crate::{log_info, log_warn};
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
@@ -59,7 +59,7 @@ impl VocalIsolationResult {
 pub struct VocalIsolationNode {
     speech_threshold: Arc<RwLock<f32>>,
     silence_streak_count: Arc<RwLock<usize>>,
-    sender: Sender<VocalIsolationResult>,
+    sender: Option<Sender<VocalIsolationResult>>,
     input_source: Option<Receiver<VoiceActivityDetectionResult>>,
     output_source: Option<Receiver<VocalIsolationResult>>,
 }
@@ -70,7 +70,7 @@ impl VocalIsolationNode {
         VocalIsolationNode {
             speech_threshold: Arc::new(RwLock::new(DEFAULT_SPEECH_THRESHOLD)),
             silence_streak_count: Arc::new(RwLock::new(DEFAULT_SILENCE_STREAK_COUNT)),
-            sender,
+            sender: Some(sender),
             input_source: None,
             output_source: Some(output_source),
         }
@@ -136,7 +136,9 @@ impl AudioNode<VoiceActivityDetectionResult, VocalIsolationResult> for VocalIsol
                                 end_time,
                                 speech_audio_block.make_contiguous().to_vec(),
                             );
-                            if let Err(err) = sender.send(speech_extractor_result).await {
+                            if let Err(err) =
+                                sender.as_ref().unwrap().send(speech_extractor_result).await
+                            {
                                 log_warn!("Vocal isolation node failed to send audio data to the output source: {}", err);
                             }
                             probabilities.clear();
@@ -146,7 +148,12 @@ impl AudioNode<VoiceActivityDetectionResult, VocalIsolationResult> for VocalIsol
                         }
                     }
                 }
+                log_info!("Vocal isolation node has been stopped.");
             });
         }
+    }
+
+    fn deactivate(&mut self) {
+        self.sender = None;
     }
 }

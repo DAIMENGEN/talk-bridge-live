@@ -1,14 +1,14 @@
 use crate::app_state::DEFAULT_MICROPHONE_GAIN;
 use crate::audio::node::AudioNode;
 use crate::audio::AudioBlock;
-use crate::log_warn;
+use crate::{log_info, log_warn};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 pub struct GainControlNode {
     gain: Arc<RwLock<f32>>,
-    sender: Sender<AudioBlock>,
+    sender: Option<Sender<AudioBlock>>,
     input_source: Option<Receiver<AudioBlock>>,
     output_source: Option<Receiver<AudioBlock>>,
 }
@@ -18,7 +18,7 @@ impl GainControlNode {
         let (sender, output_source) = mpsc::channel::<AudioBlock>(channel_capacity);
         GainControlNode {
             gain: Arc::new(RwLock::new(DEFAULT_MICROPHONE_GAIN)),
-            sender,
+            sender: Some(sender),
             input_source: None,
             output_source: Some(output_source),
         }
@@ -45,13 +45,16 @@ impl AudioNode<AudioBlock, AudioBlock> for GainControlNode {
                 while let Some(samples) = receiver.recv().await {
                     let gain = gain.read().map_or(DEFAULT_MICROPHONE_GAIN, |gain| *gain);
                     let samples = samples.iter().map(|&x| x * gain).collect();
-                    if let Err(err) = sender.send(samples).await {
+                    if let Err(err) = sender.as_ref().unwrap().send(samples).await {
                         log_warn!("Gain control node failed to send audio data to the output source: {}", err);
                     }
                 }
-                receiver.close();
-                sender.closed().await;
+                log_info!("Gain control node has been stopped.");
             });
         }
+    }
+
+    fn deactivate(&mut self) {
+        self.sender = None;
     }
 }

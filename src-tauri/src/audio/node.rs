@@ -18,6 +18,7 @@ pub mod text_translation;
 pub trait AudioNode<Input: Send, Output: Send>: Send {
     fn connect_input_source(&mut self, input_source: Receiver<Input>) -> Receiver<Output>;
     fn activate(&mut self);
+    fn deactivate(&mut self);
 }
 
 pub enum AudioNodeType {
@@ -35,7 +36,7 @@ pub enum AudioNodeType {
 }
 
 impl AudioNodeType {
-    pub(crate) fn process(&mut self) {
+    pub(crate) fn activate(&mut self) {
         match self {
             AudioNodeType::StreamInputNode(node) => node.activate(),
             AudioNodeType::GainControlNode(node) => node.activate(),
@@ -48,6 +49,22 @@ impl AudioNodeType {
             AudioNodeType::SpeechRecognitionNode(node) => node.activate(),
             AudioNodeType::TextTranslationNode(node) => node.activate(),
             AudioNodeType::PersistenceNode(node) => node.activate(),
+        }
+    }
+    
+    pub(crate) fn deactivate(&mut self) {
+        match self {
+            AudioNodeType::StreamInputNode(node) => node.deactivate(),
+            AudioNodeType::GainControlNode(node) => node.deactivate(),
+            AudioNodeType::PitchDetectorNode(node) => node.deactivate(),
+            AudioNodeType::EnergyDetectorNode(node) => node.deactivate(),
+            AudioNodeType::NoiseReductionNode(node) => node.deactivate(),
+            AudioNodeType::VoiceActivityDetectionNode(node) => node.deactivate(),
+            AudioNodeType::VocalIsolationNode(node) => node.deactivate(),
+            AudioNodeType::ConcatenationNode(node) => node.deactivate(),
+            AudioNodeType::SpeechRecognitionNode(node) => node.deactivate(),
+            AudioNodeType::TextTranslationNode(node) => node.deactivate(),
+            AudioNodeType::PersistenceNode(node) => node.deactivate(),
         }
     }
 }

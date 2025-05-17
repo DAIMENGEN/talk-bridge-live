@@ -2,7 +2,7 @@ use crate::app_state::DEFAULT_AUDIO_GAP_THRESHOLD;
 use crate::audio::node::vocal_isolation::VocalIsolationResult;
 use crate::audio::node::AudioNode;
 use crate::audio::{AudioBlock, AudioSample};
-use crate::log_warn;
+use crate::{log_info, log_warn};
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
 use std::sync::{Arc, RwLock};
@@ -58,7 +58,7 @@ impl ConcatenationResult {
 
 pub struct ConcatenationNode {
     audio_gap_threshold: Arc<RwLock<f32>>,
-    sender: Sender<ConcatenationResult>,
+    sender: Option<Sender<ConcatenationResult>>,
     input_source: Option<Receiver<VocalIsolationResult>>,
     output_source: Option<Receiver<ConcatenationResult>>,
 }
@@ -68,7 +68,7 @@ impl ConcatenationNode {
         let (sender, output_source) = channel::<ConcatenationResult>(channel_capacity);
         ConcatenationNode {
             audio_gap_threshold: Arc::new(RwLock::new(DEFAULT_AUDIO_GAP_THRESHOLD)),
-            sender,
+            sender: Some(sender),
             input_source: None,
             output_source: Some(output_source),
         }
@@ -124,11 +124,16 @@ impl AudioNode<VocalIsolationResult, ConcatenationResult> for ConcatenationNode 
                         end_record_time_option.unwrap(),
                         audio_block.make_contiguous().to_vec(),
                     );
-                    if let Err(err) = sender.send(speech_assembler_result).await {
+                    if let Err(err) = sender.as_ref().unwrap().send(speech_assembler_result).await {
                         log_warn!("Concatenation node failed to send audio data to the output source: {}", err);
                     }
                 }
+                log_info!("Concatenation node has been stopped.");
             });
         }
+    }
+
+    fn deactivate(&mut self) {
+        self.sender = None;
     }
 }

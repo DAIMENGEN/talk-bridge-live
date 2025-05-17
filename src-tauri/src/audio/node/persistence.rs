@@ -3,10 +3,10 @@ use crate::utils::wav_utils;
 use std::env;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use crate::audio::node::text_translation::TextTranslationResult;
-use crate::log_warn;
+use crate::{log_info, log_warn};
 
 pub struct PersistenceNode {
-    sender: Sender<TextTranslationResult>,
+    sender: Option<Sender<TextTranslationResult>>,
     input_source: Option<Receiver<TextTranslationResult>>,
     output_source: Option<Receiver<TextTranslationResult>>,
 }
@@ -15,7 +15,7 @@ impl PersistenceNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = channel::<TextTranslationResult>(channel_capacity);
         PersistenceNode {
-            sender,
+            sender: Some(sender),
             input_source: None,
             output_source: Some(output_source),
         }
@@ -45,11 +45,16 @@ impl AudioNode<TextTranslationResult, TextTranslationResult> for PersistenceNode
                         format!("{}.wav", start_record_time.format("%Y-%m-%d_%H-%M-%S.%3f"));
                     let file_path = tmp_dir.join(file_name);
                     wav_utils::save_wav_file_async(file_path, samples);
-                    if let Err(err) = sender.send(result).await {
+                    if let Err(err) = sender.as_ref().unwrap().send(result).await {
                         log_warn!("Persistence node failed to send text translation result to the output source: {}", err);
                     }
                 }
+                log_info!("Persistence node has been stopped.");
             });
         }
+    }
+    
+    fn deactivate(&mut self) {
+        self.sender = None;
     }
 }

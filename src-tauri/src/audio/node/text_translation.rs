@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use chrono::{DateTime, Local};
-use tokio::sync::mpsc::{channel, Receiver, Sender};
-use crate::audio::AudioBlock;
-use crate::audio::node::AudioNode;
 use crate::audio::node::speech_recognition::SpeechRecognitionResult;
+use crate::audio::node::AudioNode;
+use crate::audio::AudioBlock;
 use crate::log_warn;
+use chrono::{DateTime, Local};
+use std::collections::HashMap;
+use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 pub struct TextTranslationResult {
     pub start_record_time: DateTime<Local>,
@@ -67,11 +67,11 @@ impl TextTranslationResult {
     pub fn into_speech_text(self) -> String {
         self.speech_text
     }
-    
+
     pub fn translated_texts(&self) -> &HashMap<String, String> {
         &self.translated_texts
     }
-    
+
     #[allow(dead_code)]
     pub fn into_translated_texts(self) -> HashMap<String, String> {
         self.translated_texts
@@ -79,7 +79,7 @@ impl TextTranslationResult {
 }
 
 pub struct TextTranslationNode {
-    sender: Sender<TextTranslationResult>,
+    sender: Option<Sender<TextTranslationResult>>,
     input_source: Option<Receiver<SpeechRecognitionResult>>,
     output_source: Option<Receiver<TextTranslationResult>>,
 }
@@ -88,7 +88,7 @@ impl TextTranslationNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = channel::<TextTranslationResult>(channel_capacity);
         TextTranslationNode {
-            sender,
+            sender: Some(sender),
             input_source: None,
             output_source: Some(output_source),
         }
@@ -102,17 +102,15 @@ impl AudioNode<SpeechRecognitionResult, TextTranslationResult> for TextTranslati
     ) -> Receiver<TextTranslationResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
-            panic!(
-                "Failed to take output source from text translation node: output source is None"
-            )
+            panic!("Failed to take output source from text translation node: output source is None")
         })
     }
-    
+
     fn activate(&mut self) {
         if let Some(mut receiver) = self.input_source.take() {
             let sender = self.sender.clone();
             tokio::spawn(async move {
-                while let Some(result) = receiver.recv().await { 
+                while let Some(result) = receiver.recv().await {
                     let speech_data = result.speech_data();
                     let speech_text = result.speech_text();
                     let start_record_time = result.start_record_time();
@@ -125,11 +123,15 @@ impl AudioNode<SpeechRecognitionResult, TextTranslationResult> for TextTranslati
                         speech_text.to_string(),
                         translated_texts,
                     );
-                    if let Err(err) = sender.send(text_translation_result).await { 
+                    if let Err(err) = sender.as_ref().unwrap().send(text_translation_result).await {
                         log_warn!("Text translation node failed to send text translation result to the output source: {}", err);
                     }
                 }
             });
         }
+    }
+
+    fn deactivate(&mut self) {
+        self.sender = None;
     }
 }

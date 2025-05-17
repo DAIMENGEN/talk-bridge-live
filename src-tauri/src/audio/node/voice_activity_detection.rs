@@ -1,6 +1,6 @@
 use crate::audio::node::AudioNode;
 use crate::audio::AudioBlock;
-use crate::log_warn;
+use crate::{log_info, log_warn};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use voice_activity_detector::VoiceActivityDetector;
@@ -35,7 +35,7 @@ impl VoiceActivityDetectionResult {
 pub struct VoiceActivityDetectionNode {
     chunk_size: usize,
     sample_rate: u32,
-    sender: Sender<VoiceActivityDetectionResult>,
+    sender: Option<Sender<VoiceActivityDetectionResult>>,
     input_source: Option<Receiver<AudioBlock>>,
     output_source: Option<Receiver<VoiceActivityDetectionResult>>,
 }
@@ -45,7 +45,7 @@ impl VoiceActivityDetectionNode {
         let (sender, output_source) =
             mpsc::channel::<VoiceActivityDetectionResult>(channel_capacity);
         VoiceActivityDetectionNode {
-            sender,
+            sender: Some(sender),
             chunk_size,
             sample_rate,
             input_source: None,
@@ -83,16 +83,19 @@ impl AudioNode<AudioBlock, VoiceActivityDetectionResult> for VoiceActivityDetect
             tokio::spawn(async move {
                 while let Some(samples) = receiver.recv().await {
                     let probability = vad.predict(samples.clone());
-                    if let Err(err) = sender
+                    if let Err(err) = sender.as_ref().unwrap()
                         .send(VoiceActivityDetectionResult::new(probability, samples))
                         .await
                     {
                         log_warn!("Voice activity detection node failed to send audio data to the output source: {}", err);
                     }
                 }
-                receiver.close();
-                sender.closed().await;
+                log_info!("Voice activity detection node has been stopped.");
             });
         }
+    }
+    
+    fn deactivate(&mut self) {
+        self.sender = None;
     }
 }

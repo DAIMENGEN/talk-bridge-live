@@ -32,12 +32,15 @@ impl AudioContext {
     pub fn start(&mut self) {
         self.microphone.play();
         for audio_node in self.audio_nodes.iter_mut() {
-            audio_node.process();
+            audio_node.activate();
         }
     }
 
     pub fn close(&mut self) {
         self.microphone.exit();
+        for audio_node in self.audio_nodes.iter_mut() {
+            audio_node.deactivate();
+        }
     }
 
     pub fn connect_audio_node(&mut self, audio_node: AudioNodeType) {

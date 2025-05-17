@@ -104,8 +104,8 @@ export const AudioSettings = () => {
 
     return (
         <>
-            <Layout.Header>
-                Audio
+            <Layout.Header style={{lineHeight: "40px", fontSize: "25px"}}>
+                Audio Settings
             </Layout.Header>
             <Layout.Content>
                 <Space direction="vertical" size="large" style={{display: "flex"}}>

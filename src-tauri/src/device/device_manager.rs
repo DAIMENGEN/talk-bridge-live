@@ -12,12 +12,37 @@ use tauri::{AppHandle, Emitter, State};
 pub struct HumanVoiceProbability {
     pub probability: f32,
 }
-
 pub fn list_speakers() -> Result<Vec<cpal::Device>, Box<dyn Error>> {
     let host = cpal::default_host();
     let output_devices = host.output_devices()?;
     let devices: Vec<cpal::Device> = output_devices.collect();
     Ok(devices)
+}
+pub fn get_speaker_by_name(device_name: &str) -> Result<cpal::Device, Box<dyn Error>> {
+    match list_speakers() {
+        Ok(devices) => {
+            for device in devices {
+                if device.name()?.eq(device_name) {
+                    return Ok(device);
+                }
+            }
+            Err(format!("Speaker '{}' not found", device_name).into())
+        }
+        Err(err) => Err(err),
+    }
+}
+#[tauri::command]
+pub fn list_speaker_names() -> Result<Vec<String>, String> {
+    match list_speakers() {
+        Ok(devices) => {
+            let device_names = devices
+                .iter()
+                .filter_map(|device| device.name().ok())
+                .collect::<Vec<String>>();
+            Ok(device_names)
+        }
+        Err(err) => Err(format!("Failed to list speaker names: {}", err)),
+    }
 }
 pub fn list_microphones() -> Result<Vec<cpal::Device>, Box<dyn Error>> {
     let host = cpal::default_host();
@@ -25,7 +50,7 @@ pub fn list_microphones() -> Result<Vec<cpal::Device>, Box<dyn Error>> {
     let devices: Vec<cpal::Device> = input_devices.collect();
     Ok(devices)
 }
-pub async fn get_microphone_by_name(device_name: &str) -> Result<cpal::Device, Box<dyn Error>> {
+pub fn get_microphone_by_name(device_name: &str) -> Result<cpal::Device, Box<dyn Error>> {
     match list_microphones() {
         Ok(devices) => {
             for device in devices {
@@ -38,13 +63,26 @@ pub async fn get_microphone_by_name(device_name: &str) -> Result<cpal::Device, B
         Err(err) => Err(err),
     }
 }
+#[tauri::command]
+pub fn list_microphone_names() -> Result<Vec<String>, String> {
+    match list_microphones() {
+        Ok(devices) => {
+            let device_names = devices
+                .iter()
+                .filter_map(|device| device.name().ok())
+                .collect::<Vec<String>>();
+            Ok(device_names)
+        }
+        Err(err) => Err(format!("Failed to list microphone names: {}", err)),
+    }
+}
 #[tauri::command(rename_all = "snake_case")]
 pub async fn human_voice_detection(
     app: AppHandle,
     app_state: State<'_, AppState>,
     device_name: String,
 ) -> Result<String, String> {
-    match get_microphone_by_name(&device_name).await {
+    match get_microphone_by_name(&device_name) {
         Ok(device) => {
             const EVENT_NAME: &str = "human_voice_detection_result_event";
             let microphone = Microphone::new(device);
@@ -73,7 +111,10 @@ pub async fn human_voice_detection(
             audio_context.start();
             match app_state.set_human_voice_detection_context(audio_context) {
                 Ok(_) => Ok(EVENT_NAME.parse().unwrap()),
-                Err(err) => Err(format!("Failed to save human voice detection context: {}", err)),
+                Err(err) => Err(format!(
+                    "Failed to save human voice detection context: {}",
+                    err
+                )),
             }
         }
         Err(err) => Err(format!(
@@ -95,30 +136,3 @@ pub async fn stop_human_voice_detection(app_state: State<'_, AppState>) -> Resul
     }
     Ok(true)
 }
-#[tauri::command]
-pub async fn list_microphone_names() -> Result<Vec<String>, String> {
-    match list_microphones() {
-        Ok(devices) => {
-            let device_names = devices
-                .iter()
-                .filter_map(|device| device.name().ok())
-                .collect::<Vec<String>>();
-            Ok(device_names)
-        }
-        Err(err) => Err(format!("Failed to list microphone names: {}", err)),
-    }
-}
-#[tauri::command]
-pub async fn list_speaker_names() -> Result<Vec<String>, String> {
-    match list_speakers() {
-        Ok(devices) => {
-            let device_names = devices
-                .iter()
-                .filter_map(|device| device.name().ok())
-                .collect::<Vec<String>>();
-            Ok(device_names)
-        }
-        Err(err) => Err(format!("Failed to list speaker names: {}", err)),
-    }
-}
-

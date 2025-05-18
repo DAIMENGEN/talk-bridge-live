@@ -1,5 +1,5 @@
-use crate::audio::node::concatenation::ConcatenationResult;
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::concatenation::ConcatenationResult;
+use crate::audio::context::node::Node;
 use crate::audio::AudioBlock;
 use crate::{log_info, log_warn};
 use chrono::{DateTime, Local};
@@ -118,7 +118,7 @@ impl SpeechRecognitionNode {
     }
 }
 
-impl AudioNode<ConcatenationResult, SpeechRecognitionResult> for SpeechRecognitionNode {
+impl Node<ConcatenationResult, SpeechRecognitionResult> for SpeechRecognitionNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<ConcatenationResult>,

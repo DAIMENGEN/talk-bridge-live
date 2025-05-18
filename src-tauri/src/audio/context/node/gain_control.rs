@@ -1,5 +1,5 @@
 use crate::app_state::DEFAULT_MICROPHONE_GAIN;
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::Node;
 use crate::audio::AudioBlock;
 use crate::{log_info, log_warn};
 use std::sync::{Arc, RwLock};
@@ -29,7 +29,7 @@ impl GainControlNode {
     }
 }
 
-impl AudioNode<AudioBlock, AudioBlock> for GainControlNode {
+impl Node<AudioBlock, AudioBlock> for GainControlNode {
     fn connect_input_source(&mut self, input_source: Receiver<AudioBlock>) -> Receiver<AudioBlock> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {

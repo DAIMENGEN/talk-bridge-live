@@ -1,4 +1,4 @@
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::Node;
 use crate::audio::AudioBlock;
 use crate::{log_info, log_warn};
 use tokio::sync::mpsc;
@@ -21,7 +21,7 @@ impl StreamInputNode {
     }
 }
 
-impl AudioNode<AudioBlock, AudioBlock> for StreamInputNode {
+impl Node<AudioBlock, AudioBlock> for StreamInputNode {
     fn connect_input_source(&mut self, input_source: Receiver<AudioBlock>) -> Receiver<AudioBlock> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {

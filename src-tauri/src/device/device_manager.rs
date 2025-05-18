@@ -1,5 +1,5 @@
-use crate::audio::context::AudioContext;
-use crate::audio::node::AudioNode;
+use crate::audio::context::microphone_context::MicrophoneContext;
+use crate::audio::context::node::Node;
 use crate::device::input::microphone::Microphone;
 use crate::{log_error, AppState};
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -86,7 +86,7 @@ pub async fn human_voice_detection(
         Ok(device) => {
             const EVENT_NAME: &str = "human_voice_detection_result_event";
             let microphone = Microphone::new(device);
-            let mut audio_context = AudioContext::new(microphone);
+            let mut audio_context = MicrophoneContext::new(microphone);
             let receiver = audio_context.init().unwrap();
             let mut source_node = audio_context.create_stream_input_node();
             let mut gain_node = audio_context.create_gain_control_node();

@@ -1,4 +1,4 @@
-use crate::audio::context::AudioContext;
+use crate::audio::context::microphone_context::MicrophoneContext;
 use std::sync::{Arc, Mutex, RwLock};
 use tauri::State;
 
@@ -20,8 +20,8 @@ pub struct AppState {
     speech_threshold: Arc<RwLock<f32>>,
     audio_gap_threshold: Arc<RwLock<f32>>,
     silence_streak_count: Arc<RwLock<usize>>,
-    recording_context: Arc<Mutex<Option<AudioContext>>>,
-    human_voice_detection_context: Arc<Mutex<Option<AudioContext>>>,
+    recording_context: Arc<Mutex<Option<MicrophoneContext>>>,
+    human_voice_detection_context: Arc<Mutex<Option<MicrophoneContext>>>,
 }
 
 impl AppState {
@@ -102,7 +102,7 @@ impl AppState {
         Ok(true)
     }
 
-    pub fn set_recording_context(&self, recording_context: AudioContext) -> Result<(), String> {
+    pub fn set_recording_context(&self, recording_context: MicrophoneContext) -> Result<(), String> {
         let mut recording_context_lock = self
             .recording_context
             .lock()
@@ -113,7 +113,7 @@ impl AppState {
 
     pub fn set_human_voice_detection_context(
         &self,
-        human_voice_detection_context: AudioContext,
+        human_voice_detection_context: MicrophoneContext,
     ) -> Result<(), String> {
         let mut human_voice_detection_context_lock = self
             .human_voice_detection_context
@@ -151,11 +151,11 @@ impl AppState {
         self.audio_gap_threshold.clone()
     }
 
-    pub fn get_recording_context(&self) -> Arc<Mutex<Option<AudioContext>>> {
+    pub fn get_recording_context(&self) -> Arc<Mutex<Option<MicrophoneContext>>> {
         self.recording_context.clone()
     }
 
-    pub fn get_human_voice_detection_context(&self) -> Arc<Mutex<Option<AudioContext>>> {
+    pub fn get_human_voice_detection_context(&self) -> Arc<Mutex<Option<MicrophoneContext>>> {
         self.human_voice_detection_context.clone()
     }
 }

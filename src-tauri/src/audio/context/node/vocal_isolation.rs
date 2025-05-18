@@ -1,6 +1,6 @@
 use crate::app_state::{DEFAULT_SILENCE_STREAK_COUNT, DEFAULT_SPEECH_THRESHOLD};
-use crate::audio::node::voice_activity_detection::VoiceActivityDetectionResult;
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::voice_activity_detection::VoiceActivityDetectionResult;
+use crate::audio::context::node::Node;
 use crate::audio::{AudioBlock, AudioSample};
 use crate::{log_info, log_warn};
 use chrono::{DateTime, Local};
@@ -85,7 +85,7 @@ impl VocalIsolationNode {
     }
 }
 
-impl AudioNode<VoiceActivityDetectionResult, VocalIsolationResult> for VocalIsolationNode {
+impl Node<VoiceActivityDetectionResult, VocalIsolationResult> for VocalIsolationNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<VoiceActivityDetectionResult>,

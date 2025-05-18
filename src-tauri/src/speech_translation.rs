@@ -1,5 +1,5 @@
-use crate::audio::context::AudioContext;
-use crate::audio::node::AudioNode;
+use crate::audio::context::microphone_context::MicrophoneContext;
+use crate::audio::context::node::Node;
 use crate::audio::transcription::TranscriptData;
 use crate::device::device_manager::get_microphone_by_name;
 use crate::device::input::microphone::Microphone;
@@ -16,7 +16,7 @@ pub fn start_recording(
         Ok(device) => {
             const EVENT_NAME: &str = "transcript_result_event";
             let microphone = Microphone::new(device);
-            let mut audio_context = AudioContext::new(microphone);
+            let mut audio_context = MicrophoneContext::new(microphone);
             let receiver = audio_context.init().unwrap();
             let mut stream_input_node = audio_context.create_stream_input_node();
             let mut gain_control_node = audio_context.create_gain_control_node();

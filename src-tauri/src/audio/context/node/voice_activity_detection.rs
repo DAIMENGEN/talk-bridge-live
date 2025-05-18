@@ -1,4 +1,4 @@
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::Node;
 use crate::audio::AudioBlock;
 use crate::{log_info, log_warn};
 use tokio::sync::mpsc;
@@ -54,7 +54,7 @@ impl VoiceActivityDetectionNode {
     }
 }
 
-impl AudioNode<AudioBlock, VoiceActivityDetectionResult> for VoiceActivityDetectionNode {
+impl Node<AudioBlock, VoiceActivityDetectionResult> for VoiceActivityDetectionNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<AudioBlock>,

@@ -1,8 +1,8 @@
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::Node;
 use crate::utils::wav_utils;
 use std::env;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
-use crate::audio::node::text_translation::TextTranslationResult;
+use crate::audio::context::node::text_translation::TextTranslationResult;
 use crate::{log_info, log_warn};
 
 pub struct PersistenceNode {
@@ -22,7 +22,7 @@ impl PersistenceNode {
     }
 }
 
-impl AudioNode<TextTranslationResult, TextTranslationResult> for PersistenceNode {
+impl Node<TextTranslationResult, TextTranslationResult> for PersistenceNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<TextTranslationResult>,

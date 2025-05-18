@@ -1,5 +1,5 @@
-use crate::audio::node::speech_recognition::SpeechRecognitionResult;
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::speech_recognition::SpeechRecognitionResult;
+use crate::audio::context::node::Node;
 use crate::audio::AudioBlock;
 use crate::log_warn;
 use chrono::{DateTime, Local};
@@ -95,7 +95,7 @@ impl TextTranslationNode {
     }
 }
 
-impl AudioNode<SpeechRecognitionResult, TextTranslationResult> for TextTranslationNode {
+impl Node<SpeechRecognitionResult, TextTranslationResult> for TextTranslationNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<SpeechRecognitionResult>,

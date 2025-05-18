@@ -1,6 +1,6 @@
 use crate::app_state::DEFAULT_AUDIO_GAP_THRESHOLD;
-use crate::audio::node::vocal_isolation::VocalIsolationResult;
-use crate::audio::node::AudioNode;
+use crate::audio::context::node::vocal_isolation::VocalIsolationResult;
+use crate::audio::context::node::Node;
 use crate::audio::{AudioBlock, AudioSample};
 use crate::{log_info, log_warn};
 use chrono::{DateTime, Local};
@@ -79,7 +79,7 @@ impl ConcatenationNode {
     }
 }
 
-impl AudioNode<VocalIsolationResult, ConcatenationResult> for ConcatenationNode {
+impl Node<VocalIsolationResult, ConcatenationResult> for ConcatenationNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<VocalIsolationResult>,

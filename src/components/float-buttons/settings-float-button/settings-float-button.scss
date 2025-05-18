@@ -74,6 +74,9 @@
           .ant-layout-content {
             color: $dark-mode-font-color;
             background: $dark-mode-background-color;
+            overflow: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #2b2b2b #777777;
 
             .speaker-text, .microphone-text {
               font-size: 20px;
@@ -122,7 +125,7 @@
               align-items: center;
               justify-content: space-between;
               div:first-child {
-                width: 155px;
+                width: 225px;
                 font-size: 16px;
                 text-align: right;
               }

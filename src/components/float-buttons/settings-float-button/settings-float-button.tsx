@@ -11,7 +11,12 @@ import {log} from "@src/logger.ts";
 import {UnlistenFn} from "@tauri-apps/api/event";
 import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {TauriStateService} from "@src/tauri-services/tauri-state-service.ts";
-import {setMicrophoneGain, setMicrophoneName} from "@src/store/features/app-settings-slice.ts";
+import {
+    setMicrophoneGain,
+    setMicrophoneName,
+    setSilenceStreakThreshold,
+    setSpeechThreshold
+} from "@src/store/features/app-settings-slice.ts";
 
 export const SettingsFloatButton = () => {
     const items: MenuItem[] = [
@@ -101,6 +106,8 @@ export const AudioSettings = () => {
     const [microphoneProbability, setMicrophoneProbability] = useState<number>(0);
     const microphoneGain = useAppSelector((state) => state.appSettings.microphoneGain);
     const microphoneName = useAppSelector((state) => state.appSettings.microphoneName);
+    const speechThreshold = useAppSelector((state) => state.appSettings.speechThreshold);
+    const silenceStreakThreshold = useAppSelector((state) => state.appSettings.silenceStreakThreshold);
 
     useEffect(() => {
         TauriDeviceService.listSpeakerNames().then(n => setSpeakerNames(n.map((name) => ({
@@ -192,6 +199,30 @@ export const AudioSettings = () => {
                             <Slider min={0} max={3} step={0.1} defaultValue={microphoneGain} onChangeComplete={(value) => {
                                 TauriStateService.setMicrophoneGain(value).then(_ => {
                                     appDispatch(setMicrophoneGain(value));
+                                }).catch(log.error);
+                            }} styles={{
+                                root: {
+                                    width: "100%"
+                                }
+                            }}/>
+                        </div>
+                        <div className={"slider-container"}>
+                            <div>Speech Threshold</div>
+                            <Slider min={0} max={1} step={0.05} defaultValue={speechThreshold} onChangeComplete={(value) => {
+                                TauriStateService.setSpeechThreshold(value).then(_ => {
+                                    appDispatch(setSpeechThreshold(value));
+                                }).catch(log.error);
+                            }} styles={{
+                                root: {
+                                    width: "100%"
+                                }
+                            }}/>
+                        </div>
+                        <div className={"slider-container"}>
+                            <div>Silence Streak Threshold</div>
+                            <Slider min={0} max={10} step={1} defaultValue={silenceStreakThreshold} onChangeComplete={(value) => {
+                                TauriStateService.setSilenceStreakThreshold(value).then(_ => {
+                                    appDispatch(setSilenceStreakThreshold(value));
                                 }).catch(log.error);
                             }} styles={{
                                 root: {

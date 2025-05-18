@@ -1,6 +1,5 @@
 import "./app-home.scss";
 import {useEffect, useRef, useState} from "react";
-import {AppSettings} from "@src/components/desktop-app/app-settings/app-settings.tsx";
 import {useAppSelector} from "@src/store/store.ts";
 import {UnlistenFn} from "@tauri-apps/api/event";
 import {TauriAudioRecorderService} from "@src/tauri-services/tauri-audio-recorder-service.ts";
@@ -17,7 +16,7 @@ interface TranscriptData {
 export const AppHome = () => {
     const appHomeRef = useRef<HTMLDivElement>(null);
     const [transcripts, setTranscripts] = useState<TranscriptData[]>([]);
-    const microphoneName = useAppSelector((state) => state.appSettings.selectedMicrophoneName);
+    const microphoneName = useAppSelector((state) => state.appSettings.microphoneName);
     useEffect(() => {
         const appHome = appHomeRef.current;
         if (appHome) {
@@ -51,7 +50,6 @@ export const AppHome = () => {
     }, [microphoneName]);
     return (
         <div className={"app-home"} ref={appHomeRef}>
-            <AppSettings/>
             <Flex vertical={true} gap={"small"}>
                 {
                     transcripts.map((transcriptData, index) => {

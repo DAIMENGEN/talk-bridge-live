@@ -6,7 +6,7 @@ export type AppSettingsStore = {
     microphoneGain: number;
     speechThreshold: number;
     audioGapThreshold: number;
-    silenceStreakCount: number;
+    silenceStreakThreshold: number;
     speakerName?: string;
     microphoneName?: string;
 }
@@ -17,7 +17,7 @@ const initialState: AppSettingsStore = {
     microphoneGain: 1.0,
     speechThreshold: 0.75,
     audioGapThreshold: 0.5,
-    silenceStreakCount: 3,
+    silenceStreakThreshold: 3,
     speakerName: undefined,
     microphoneName: undefined
 }
@@ -41,8 +41,8 @@ const appSettingsSlice = createSlice({
         setAudioGapThreshold: (state, action: PayloadAction<number>) => {
             state.audioGapThreshold = action.payload;
         },
-        setSilenceStreakCount: (state, action: PayloadAction<number>) => {
-            state.silenceStreakCount = action.payload;
+        setSilenceStreakThreshold: (state, action: PayloadAction<number>) => {
+            state.silenceStreakThreshold = action.payload;
         },
         setSpeakerName: (state, action: PayloadAction<string | undefined>) => {
             state.speakerName = action.payload;
@@ -56,7 +56,7 @@ const appSettingsSlice = createSlice({
 export const {
     setIsOpenSettings,
     setIsShowSettingsButton,
-    setSilenceStreakCount,
+    setSilenceStreakThreshold,
     setMicrophoneGain,
     setSpeechThreshold,
     setSpeakerName,

@@ -51,34 +51,34 @@ impl AppState {
         Ok(true)
     }
 
-    pub fn set_microphone_gain(&self, microphone_gain: f32) -> Result<bool, String> {
+    pub fn set_microphone_gain(&self, microphone_gain: f32) -> Result<(), String> {
         let mut microphone_gain_lock = self
             .microphone_gain
             .write()
             .map_err(|err| format!("Failed to lock microphone gain: {}", err))?;
         *microphone_gain_lock = microphone_gain;
-        Ok(true)
+        Ok(())
     }
 
-    pub fn set_speech_threshold(&self, speech_threshold: f32) -> Result<bool, String> {
+    pub fn set_speech_threshold(&self, speech_threshold: f32) -> Result<(), String> {
         let mut speech_threshold_lock = self
             .speech_threshold
             .write()
             .map_err(|err| format!("Failed to lock speech threshold: {}", err))?;
         *speech_threshold_lock = speech_threshold;
-        Ok(true)
+        Ok(())
     }
 
     pub fn set_silence_streak_threshold(
         &self,
         silence_streak_threshold: usize,
-    ) -> Result<bool, String> {
+    ) -> Result<(), String> {
         let mut silence_streak_threshold_lock = self
             .silence_streak_threshold
             .write()
             .map_err(|err| format!("Failed to lock silence streak threshold: {}", err))?;
         *silence_streak_threshold_lock = silence_streak_threshold;
-        Ok(true)
+        Ok(())
     }
 
     pub fn set_microphone_context(
@@ -110,6 +110,7 @@ impl AppState {
         self.speaker.clone()
     }
 
+    #[allow(dead_code)]
     pub fn get_meeting_room(&self) -> Arc<RwLock<String>> {
         self.meeting_room.clone()
     }
@@ -152,7 +153,7 @@ pub fn set_meeting_room(
 pub fn set_microphone_gain(
     app_state: State<'_, AppState>,
     microphone_gain: f32,
-) -> Result<bool, String> {
+) -> Result<(), String> {
     app_state.set_microphone_gain(microphone_gain)
 }
 
@@ -160,7 +161,7 @@ pub fn set_microphone_gain(
 pub fn set_speech_threshold(
     app_state: State<'_, AppState>,
     speech_threshold: f32,
-) -> Result<bool, String> {
+) -> Result<(), String> {
     app_state.set_speech_threshold(speech_threshold)
 }
 
@@ -168,6 +169,6 @@ pub fn set_speech_threshold(
 pub fn set_silence_streak_threshold(
     app_state: State<'_, AppState>,
     silence_streak_threshold: usize,
-) -> Result<bool, String> {
+) -> Result<(), String> {
     app_state.set_silence_streak_threshold(silence_streak_threshold)
 }

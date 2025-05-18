@@ -9,6 +9,9 @@ import {TauriDeviceService} from "@src/tauri-services/tauri-device-service.ts";
 import {TauriService} from "@src/tauri-services/tauri-service.ts";
 import {log} from "@src/logger.ts";
 import {UnlistenFn} from "@tauri-apps/api/event";
+import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
+import {TauriStateService} from "@src/tauri-services/tauri-state-service.ts";
+import {setMicrophoneGain} from "@src/store/features/app-settings-slice.ts";
 
 export const SettingsFloatButton = () => {
     const items: MenuItem[] = [
@@ -91,11 +94,13 @@ export const GeneralSettings = () => {
 }
 
 export const AudioSettings = () => {
+    const appDispatch = useAppDispatch();
     const [speakerNames, setSpeakerNames] = useState<SelectOption[]>([]);
     const [microphoneName, setMicrophoneName] = useState<string>();
     const [microphoneNames, setMicrophoneNames] = useState<SelectOption[]>([]);
     const [isTestingMicrophone, setIsTestingMicrophone] = useState(false);
     const [microphoneProbability, setMicrophoneProbability] = useState<number>(0);
+    const microphoneGain = useAppSelector((state) => state.appSettings.microphoneGain);
 
     useEffect(() => {
         TauriDeviceService.listSpeakerNames().then(n => setSpeakerNames(n.map((name) => ({
@@ -177,12 +182,16 @@ export const AudioSettings = () => {
                                 onClick={() => setIsTestingMicrophone(value => !value)}>{isTestingMicrophone ? "Stop" : "Test"}</Button>
                         </Space>
                         <div className={"indicator-container"}>
-                            <div>Input Volume</div>
+                            <div>Speech Detection</div>
                             <VoiceActivityIndicator probability={microphoneProbability}/>
                         </div>
                         <div className={"slider-container"}>
-                            <div>Volume</div>
-                            <Slider styles={{
+                            <div>Gain</div>
+                            <Slider min={0} max={3} step={0.1} defaultValue={microphoneGain} onChangeComplete={(value) => {
+                                TauriStateService.setMicrophoneGain(value).then(_ => {
+                                    appDispatch(setMicrophoneGain(value));
+                                }).catch(log.error);
+                            }} styles={{
                                 root: {
                                     width: "100%"
                                 }

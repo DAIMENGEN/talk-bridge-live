@@ -14,9 +14,6 @@ import {
 import {
     SilenceStreakCountAdjust
 } from "@src/components/desktop-app/app-settings/silence-streak-count-adjust/silence-streak-count-adjust.tsx";
-import {
-    AudioGapThresholdAdjust
-} from "@src/components/desktop-app/app-settings/audio-gap-threshold-adjust/audio-gap-threshold-adjust.tsx";
 import {DARK_MODE_FONT_COLOR} from "@src/theme/theme.ts";
 
 export const AppSettings = () => {
@@ -36,7 +33,6 @@ export const AppSettings = () => {
                     <LabelBlock label="Microphone Gain Adjust" content={<MicrophoneGainAdjust/>}/>
                     <LabelBlock label="Speech Threshold Adjust" content={<SpeechThresholdAdjust/>}/>
                     <LabelBlock label="Silence Streak Count Adjust" content={<SilenceStreakCountAdjust/>}/>
-                    <LabelBlock label="Audio Gap Threshold Adjust" content={<AudioGapThresholdAdjust/>}/>
                 </Card>
             </Space>
         </Drawer>

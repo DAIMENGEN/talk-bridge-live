@@ -105,6 +105,7 @@ impl AppState {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn get_speaker(&self) -> Arc<RwLock<String>> {
         self.speaker.clone()
     }

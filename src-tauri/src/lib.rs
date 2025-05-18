@@ -1,20 +1,22 @@
 mod app_state;
 mod audio;
 mod device;
-mod logger;
-mod silero_vad;
-mod utils;
-mod protos_gen;
 mod language;
+mod logger;
+mod protos_gen;
+mod silero_vad;
 mod speech_translation;
+mod utils;
 
-use std::panic;
-use crate::app_state::{set_microphone_gain, set_speech_threshold, set_silence_streak_count, AppState, set_audio_gap_threshold, set_speaker, set_meeting_room, set_asr_service_url};
-use crate::speech_translation::{start_recording, stop_recording};
-use crate::device::device_manager::{
-    human_voice_detection, list_microphone_names, list_speaker_names,
-    stop_human_voice_detection,
+use crate::app_state::{
+    set_meeting_room, set_microphone_gain, set_silence_streak_threshold, set_speaker,
+    set_speech_threshold, AppState,
 };
+use crate::device::device_manager::{
+    list_microphone_names, list_speaker_names, test_microphone, stop_test_microphone,
+};
+use crate::speech_translation::{start_recording, stop_recording};
+use std::panic;
 use std::path::PathBuf;
 use tauri_plugin_log::{RotationStrategy, Target, TargetKind, TimezoneStrategy};
 
@@ -38,7 +40,7 @@ pub fn run() {
                 .timezone_strategy(TimezoneStrategy::UseLocal) // Set the time zone strategy to use the local time zone.
                 .build(),
         )
-        .setup(|app| {
+        .setup(|_app| {
             panic::set_hook(Box::new(|panic_info| {
                 log_error!("{:#?}", panic_info);
             }));
@@ -49,15 +51,13 @@ pub fn run() {
             stop_recording,
             start_recording,
             set_meeting_room,
-            list_speaker_names,
-            set_asr_service_url,
-            set_silence_streak_count,
             set_microphone_gain,
             set_speech_threshold,
+            set_silence_streak_threshold,
+            list_speaker_names,
+            test_microphone,
+            stop_test_microphone,
             list_microphone_names,
-            human_voice_detection,
-            stop_human_voice_detection,
-            set_audio_gap_threshold,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

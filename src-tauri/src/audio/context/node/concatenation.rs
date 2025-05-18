@@ -1,11 +1,10 @@
-use crate::app_state::DEFAULT_AUDIO_GAP_THRESHOLD;
 use crate::audio::context::node::vocal_isolation::VocalIsolationResult;
 use crate::audio::context::node::Node;
 use crate::audio::{AudioBlock, AudioSample};
 use crate::{log_info, log_warn};
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 pub struct ConcatenationResult {
@@ -57,7 +56,6 @@ impl ConcatenationResult {
 }
 
 pub struct ConcatenationNode {
-    audio_gap_threshold: Arc<RwLock<f32>>,
     sender: Option<Sender<ConcatenationResult>>,
     input_source: Option<Receiver<VocalIsolationResult>>,
     output_source: Option<Receiver<ConcatenationResult>>,
@@ -67,15 +65,10 @@ impl ConcatenationNode {
     pub fn new(channel_capacity: usize) -> Self {
         let (sender, output_source) = channel::<ConcatenationResult>(channel_capacity);
         ConcatenationNode {
-            audio_gap_threshold: Arc::new(RwLock::new(DEFAULT_AUDIO_GAP_THRESHOLD)),
             sender: Some(sender),
             input_source: None,
             output_source: Some(output_source),
         }
-    }
-
-    pub fn set_audio_gap_threshold(&mut self, audio_gap_threshold: Arc<RwLock<f32>>) {
-        self.audio_gap_threshold = audio_gap_threshold;
     }
 }
 
@@ -93,7 +86,7 @@ impl Node<VocalIsolationResult, ConcatenationResult> for ConcatenationNode {
     fn activate(&mut self) {
         if let Some(mut receiver) = self.input_source.take() {
             let sender = self.sender.clone();
-            let audio_gap_threshold = self.audio_gap_threshold.clone();
+            let audio_gap_threshold = 1f32;
             tokio::spawn(async move {
                 let mut audio_block = VecDeque::<AudioSample>::new();
                 let mut start_record_time_option: Option<DateTime<Local>> = None;
@@ -102,9 +95,6 @@ impl Node<VocalIsolationResult, ConcatenationResult> for ConcatenationNode {
                     let speech_data = result.speech_data();
                     let current_end_record_time = result.end_record_time();
                     let current_start_record_time = result.start_record_time();
-                    let audio_gap_threshold = audio_gap_threshold
-                        .read()
-                        .map_or(DEFAULT_AUDIO_GAP_THRESHOLD, |threshold| *threshold);
                     if start_record_time_option.is_none() {
                         start_record_time_option.replace(current_start_record_time.clone());
                     }
@@ -125,7 +115,10 @@ impl Node<VocalIsolationResult, ConcatenationResult> for ConcatenationNode {
                         audio_block.make_contiguous().to_vec(),
                     );
                     if let Err(err) = sender.as_ref().unwrap().send(speech_assembler_result).await {
-                        log_warn!("Concatenation node failed to send audio data to the output source: {}", err);
+                        log_warn!(
+                            "Concatenation node failed to send audio data to the output source: {}",
+                            err
+                        );
                     }
                 }
                 log_info!("Concatenation node has been stopped.");

@@ -36,12 +36,10 @@ pub fn start_recording(
             let mut receiver = persistence_node.connect_input_source(receiver);
             let microphone_gain = app_state.get_microphone_gain();
             let speech_threshold = app_state.get_speech_threshold();
-            let speech_merge_threshold = app_state.get_audio_gap_threshold();
-            let silence_streak_count = app_state.get_silence_streak_count_lock();
+            let silence_streak_threshold = app_state.get_silence_streak_threshold();
             gain_control_node.set_gain(microphone_gain);
-            vocal_isolation_node.set_silence_streak_count(silence_streak_count);
+            vocal_isolation_node.set_silence_streak_threshold(silence_streak_threshold);
             vocal_isolation_node.set_speech_threshold(speech_threshold);
-            concatenation_node.set_audio_gap_threshold(speech_merge_threshold);
             audio_context.connect_stream_input_node(stream_input_node);
             audio_context.connect_gain_control_node(gain_control_node);
             audio_context.connect_vad_node(vad_node);
@@ -64,7 +62,7 @@ pub fn start_recording(
                     }
                 }
             });
-            match app_state.set_recording_context(audio_context) {
+            match app_state.set_microphone_context(audio_context) {
                 Ok(_) => Ok(EVENT_NAME.parse().unwrap()),
                 Err(err) => Err(format!("Failed to save recording context: {}", err)),
             }
@@ -78,7 +76,7 @@ pub fn start_recording(
 
 #[tauri::command]
 pub fn stop_recording(app_state: State<'_, AppState>) -> Result<bool, String> {
-    let recording_context = app_state.get_recording_context();
+    let recording_context = app_state.get_microphone_context();
     let mut recording_context_lock = recording_context
         .lock()
         .map_err(|err| format!("Failed to lock microphone: {}", err))?;

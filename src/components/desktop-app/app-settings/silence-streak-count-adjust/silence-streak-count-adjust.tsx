@@ -15,7 +15,7 @@ export const SilenceStreakCountAdjust = () => {
                 max={10}
                 step={1}
                 onChange={(value) => {
-                    TauriStateService.setSilenceStreakCount(value).then((result) => {
+                    TauriStateService.setSilenceStreakThreshold(value).then((result) => {
                         if (result) {
                             appDispatch(setSilenceStreakCount(value));
                         }

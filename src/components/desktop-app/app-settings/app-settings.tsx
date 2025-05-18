@@ -9,9 +9,6 @@ import {
     MicrophoneGainAdjust
 } from "@src/components/desktop-app/app-settings/microphone-gain-adjust/microphone-gain-adjust.tsx";
 import {
-    MicrophoneHumanVoiceDetection
-} from "@src/components/desktop-app/app-settings/microphone-human-voice-detection/microphone-human-voice-detection.tsx";
-import {
     SpeechThresholdAdjust
 } from "@src/components/desktop-app/app-settings/speech-threshold-adjust/speech-threshold-adjust.tsx";
 import {
@@ -40,7 +37,6 @@ export const AppSettings = () => {
                     <LabelBlock label="Speech Threshold Adjust" content={<SpeechThresholdAdjust/>}/>
                     <LabelBlock label="Silence Streak Count Adjust" content={<SilenceStreakCountAdjust/>}/>
                     <LabelBlock label="Audio Gap Threshold Adjust" content={<AudioGapThresholdAdjust/>}/>
-                    <LabelBlock label="Human Voice Detection" content={<MicrophoneHumanVoiceDetection/>}/>
                 </Card>
             </Space>
         </Drawer>

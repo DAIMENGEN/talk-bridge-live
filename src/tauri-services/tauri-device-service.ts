@@ -1,12 +1,12 @@
 import {invoke} from "@tauri-apps/api/core";
 
 export class TauriDeviceService {
-    static humanVoiceDetection(deviceName: string): Promise<string> {
-        return invoke<string>("human_voice_detection", {device_name: deviceName});
+    static testMicrophone(deviceName: string): Promise<string> {
+        return invoke<string>("test_microphone", {device_name: deviceName});
     }
 
-    static stopHumanVoiceDetection(): Promise<boolean> {
-        return invoke<boolean>("stop_human_voice_detection");
+    static stopTestMicrophone(): Promise<void> {
+        return invoke<void>("stop_test_microphone");
     }
 
     static listSpeakerNames(): Promise<string[]> {

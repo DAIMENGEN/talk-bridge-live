@@ -4487,6 +4487,7 @@ dependencies = [
  "tokio-macros",
  "tonic",
  "tonic-build",
+ "uuid",
  "voice_activity_detector",
  "whisper-rs",
  "whoami",

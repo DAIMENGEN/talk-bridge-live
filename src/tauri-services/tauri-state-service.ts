@@ -14,7 +14,7 @@ export class TauriStateService {
         return invoke<boolean>("set_audio_gap_threshold", {audio_gap_threshold: audioGapThreshold});
     }
 
-    static setSilenceStreakCount(silenceStreakCount: number): Promise<boolean> {
-        return invoke<boolean>("set_silence_streak_count", {silence_streak_count: silenceStreakCount});
+    static setSilenceStreakThreshold(silenceStreakThreshold: number): Promise<boolean> {
+        return invoke<boolean>("set_silence_streak_threshold", {silence_streak_threshold: silenceStreakThreshold});
     }
 }

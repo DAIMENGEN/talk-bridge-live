@@ -6,6 +6,9 @@ import {DraggableModal, VoiceActivityIndicator} from "@src/components/common";
 import {DARK_MODE_BACKGROUND_COLOR, DARK_MODE_FONT_COLOR} from "@src/theme/theme.ts";
 import {MenuItem, SelectOption} from "@src/types.ts";
 import {TauriDeviceService} from "@src/tauri-services/tauri-device-service.ts";
+import {TauriService} from "@src/tauri-services/tauri-service.ts";
+import {log} from "@src/logger.ts";
+import {UnlistenFn} from "@tauri-apps/api/event";
 
 export const SettingsFloatButton = () => {
     const items: MenuItem[] = [
@@ -89,7 +92,10 @@ export const GeneralSettings = () => {
 
 export const AudioSettings = () => {
     const [speakerNames, setSpeakerNames] = useState<SelectOption[]>([]);
+    const [microphoneName, setMicrophoneName] = useState<string>();
     const [microphoneNames, setMicrophoneNames] = useState<SelectOption[]>([]);
+    const [isTestingMicrophone, setIsTestingMicrophone] = useState(false);
+    const [microphoneProbability, setMicrophoneProbability] = useState<number>(0);
 
     useEffect(() => {
         TauriDeviceService.listSpeakerNames().then(n => setSpeakerNames(n.map((name) => ({
@@ -101,6 +107,30 @@ export const AudioSettings = () => {
             label: name
         }))));
     }, []);
+
+    useEffect(() => {
+        let unlisten: UnlistenFn;
+        let cancelled = false;
+        if (isTestingMicrophone && microphoneName) {
+            TauriDeviceService.testMicrophone(microphoneName).then(eventName => {
+                if (cancelled) return;
+                TauriService.listen<number>(eventName, (event) => {
+                    setMicrophoneProbability(event.payload);
+                }).then(result => {
+                    if (!cancelled) {
+                        unlisten = result;
+                    }
+                });
+            });
+        }
+        return () => {
+            cancelled = true;
+            if (isTestingMicrophone) {
+                unlisten && unlisten();
+                TauriDeviceService.stopTestMicrophone().catch(log.error);
+            }
+        };
+    }, [microphoneName, isTestingMicrophone]);
 
     return (
         <>
@@ -136,13 +166,19 @@ export const AudioSettings = () => {
                             Microphone
                         </div>
                         <Space size={"small"} rootClassName={"select-container"}>
-                            <Select options={microphoneNames} rootClassName={"microphone-select"}
-                                    popupClassName={"microphone-select-options"}/>
-                            <Button>Test</Button>
+                            <Select options={microphoneNames}
+                                    rootClassName={"microphone-select"}
+                                    popupClassName={"microphone-select-options"}
+                                    onSelect={(value: string) => {
+                                        setMicrophoneName(value);
+                                        setIsTestingMicrophone(false);
+                                    }}/>
+                            <Button
+                                onClick={() => setIsTestingMicrophone(value => !value)}>{isTestingMicrophone ? "Stop" : "Test"}</Button>
                         </Space>
                         <div className={"indicator-container"}>
                             <div>Input Volume</div>
-                            <VoiceActivityIndicator probability={0.75}/>
+                            <VoiceActivityIndicator probability={microphoneProbability}/>
                         </div>
                         <div className={"slider-container"}>
                             <div>Volume</div>

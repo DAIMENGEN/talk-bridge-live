@@ -11,7 +11,7 @@ import {log} from "@src/logger.ts";
 import {UnlistenFn} from "@tauri-apps/api/event";
 import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {TauriStateService} from "@src/tauri-services/tauri-state-service.ts";
-import {setMicrophoneGain} from "@src/store/features/app-settings-slice.ts";
+import {setMicrophoneGain, setMicrophoneName} from "@src/store/features/app-settings-slice.ts";
 
 export const SettingsFloatButton = () => {
     const items: MenuItem[] = [
@@ -96,11 +96,11 @@ export const GeneralSettings = () => {
 export const AudioSettings = () => {
     const appDispatch = useAppDispatch();
     const [speakerNames, setSpeakerNames] = useState<SelectOption[]>([]);
-    const [microphoneName, setMicrophoneName] = useState<string>();
     const [microphoneNames, setMicrophoneNames] = useState<SelectOption[]>([]);
     const [isTestingMicrophone, setIsTestingMicrophone] = useState(false);
     const [microphoneProbability, setMicrophoneProbability] = useState<number>(0);
     const microphoneGain = useAppSelector((state) => state.appSettings.microphoneGain);
+    const microphoneName = useAppSelector((state) => state.appSettings.microphoneName);
 
     useEffect(() => {
         TauriDeviceService.listSpeakerNames().then(n => setSpeakerNames(n.map((name) => ({
@@ -172,11 +172,13 @@ export const AudioSettings = () => {
                         </div>
                         <Space size={"small"} rootClassName={"select-container"}>
                             <Select options={microphoneNames}
+                                    defaultValue={microphoneName}
                                     rootClassName={"microphone-select"}
+                                    placeholder={"Please select a microphone"}
                                     popupClassName={"microphone-select-options"}
-                                    onSelect={(value: string) => {
-                                        setMicrophoneName(value);
+                                    onChange={(value: string) => {
                                         setIsTestingMicrophone(false);
+                                        appDispatch(setMicrophoneName(value));
                                     }}/>
                             <Button
                                 onClick={() => setIsTestingMicrophone(value => !value)}>{isTestingMicrophone ? "Stop" : "Test"}</Button>

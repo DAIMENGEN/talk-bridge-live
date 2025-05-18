@@ -3,7 +3,6 @@ import {Card, Drawer, Space} from "antd";
 import {CloseOutlined} from "@ant-design/icons";
 import {useAppDispatch, useAppSelector} from "@src/store/store.ts";
 import {setIsOpenSettings} from "@src/store/features/app-settings-slice.ts";
-import {MicrophoneSelect} from "@src/components/desktop-app/app-settings/microphone-select/microphone-select.tsx";
 import {LabelBlock} from "@src/components/label-block/label-block.tsx";
 import {
     SpeechThresholdAdjust
@@ -26,7 +25,6 @@ export const AppSettings = () => {
                 onClose={() => appDispatch(setIsOpenSettings(false))}>
             <Space direction="vertical" size="middle" style={{display: 'flex'}}>
                 <Card title="Microphone Settings" variant="borderless" hoverable>
-                    <LabelBlock label="Microphone Select" content={<MicrophoneSelect/>}/>
                     <LabelBlock label="Speech Threshold Adjust" content={<SpeechThresholdAdjust/>}/>
                     <LabelBlock label="Silence Streak Count Adjust" content={<SilenceStreakCountAdjust/>}/>
                 </Card>

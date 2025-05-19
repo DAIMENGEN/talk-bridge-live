@@ -124,8 +124,8 @@
               display: flex;
               align-items: center;
               justify-content: space-between;
-              div:first-child {
-                width: 225px;
+              > div:first-child {
+                min-width: 175px;
                 font-size: 16px;
                 text-align: right;
               }

@@ -4,7 +4,6 @@ use crate::audio::{AudioBlock, AudioSample};
 use crate::{log_info, log_warn};
 use chrono::{DateTime, Local};
 use std::collections::VecDeque;
-use std::sync::RwLock;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 pub struct ConcatenationResult {

@@ -2,18 +2,18 @@ use crate::audio::context::node::Node;
 use crate::utils::wav_utils;
 use std::env;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
-use crate::audio::context::node::text_translation::TextTranslationResult;
+use crate::audio::context::node::translation::TranslationResult;
 use crate::{log_info, log_warn};
 
 pub struct PersistenceNode {
-    sender: Option<Sender<TextTranslationResult>>,
-    input_source: Option<Receiver<TextTranslationResult>>,
-    output_source: Option<Receiver<TextTranslationResult>>,
+    sender: Option<Sender<TranslationResult>>,
+    input_source: Option<Receiver<TranslationResult>>,
+    output_source: Option<Receiver<TranslationResult>>,
 }
 
 impl PersistenceNode {
     pub fn new(channel_capacity: usize) -> Self {
-        let (sender, output_source) = channel::<TextTranslationResult>(channel_capacity);
+        let (sender, output_source) = channel::<TranslationResult>(channel_capacity);
         PersistenceNode {
             sender: Some(sender),
             input_source: None,
@@ -22,11 +22,11 @@ impl PersistenceNode {
     }
 }
 
-impl Node<TextTranslationResult, TextTranslationResult> for PersistenceNode {
+impl Node<TranslationResult, TranslationResult> for PersistenceNode {
     fn connect_input_source(
         &mut self,
-        input_source: Receiver<TextTranslationResult>,
-    ) -> Receiver<TextTranslationResult> {
+        input_source: Receiver<TranslationResult>,
+    ) -> Receiver<TranslationResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
             panic!("Failed to take output source from persistence node: output source is None")

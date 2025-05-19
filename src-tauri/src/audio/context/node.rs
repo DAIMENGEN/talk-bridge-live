@@ -1,6 +1,6 @@
 use crate::audio::context::node::concatenation::ConcatenationResult;
-use crate::audio::context::node::speech_recognition::SpeechRecognitionResult;
-use crate::audio::context::node::text_translation::TextTranslationResult;
+use crate::audio::context::node::transcript::TranscriptResult;
+use crate::audio::context::node::translation::TranslationResult;
 use crate::audio::context::node::voice_activity_detection::VoiceActivityDetectionResult;
 use crate::audio::context::node::vocal_isolation::VocalIsolationResult;
 use crate::audio::AudioBlock;
@@ -12,8 +12,8 @@ pub mod persistence;
 pub mod stream_input;
 pub mod voice_activity_detection;
 pub mod vocal_isolation;
-pub mod speech_recognition;
-pub mod text_translation;
+pub mod transcript;
+pub mod translation;
 
 pub trait Node<Input: Send, Output: Send>: Send {
     fn connect_input_source(&mut self, input_source: Receiver<Input>) -> Receiver<Output>;
@@ -30,9 +30,9 @@ pub enum NodeType {
     VoiceActivityDetectionNode(Box<dyn Node<AudioBlock, VoiceActivityDetectionResult>>), // 语音活动检测节点
     VocalIsolationNode(Box<dyn Node<VoiceActivityDetectionResult, VocalIsolationResult>>), // 人声提取分离节点
     ConcatenationNode(Box<dyn Node<VocalIsolationResult, ConcatenationResult>>), // 音频拼接节点
-    SpeechRecognitionNode(Box<dyn Node<ConcatenationResult, SpeechRecognitionResult>>), // 语音识别节点
-    TextTranslationNode(Box<dyn Node<SpeechRecognitionResult, TextTranslationResult>>), // 文本翻译节点
-    PersistenceNode(Box<dyn Node<TextTranslationResult, TextTranslationResult>>), // 音频持久化节点
+    TranscriptNode(Box<dyn Node<ConcatenationResult, TranscriptResult>>), // 语音转录节点
+    TranslationNode(Box<dyn Node<TranscriptResult, TranslationResult>>), // 文本翻译节点
+    PersistenceNode(Box<dyn Node<TranslationResult, TranslationResult>>), // 音频持久化节点
 }
 
 impl NodeType {
@@ -46,8 +46,8 @@ impl NodeType {
             NodeType::VoiceActivityDetectionNode(node) => node.activate(),
             NodeType::VocalIsolationNode(node) => node.activate(),
             NodeType::ConcatenationNode(node) => node.activate(),
-            NodeType::SpeechRecognitionNode(node) => node.activate(),
-            NodeType::TextTranslationNode(node) => node.activate(),
+            NodeType::TranscriptNode(node) => node.activate(),
+            NodeType::TranslationNode(node) => node.activate(),
             NodeType::PersistenceNode(node) => node.activate(),
         }
     }
@@ -62,8 +62,8 @@ impl NodeType {
             NodeType::VoiceActivityDetectionNode(node) => node.deactivate(),
             NodeType::VocalIsolationNode(node) => node.deactivate(),
             NodeType::ConcatenationNode(node) => node.deactivate(),
-            NodeType::SpeechRecognitionNode(node) => node.deactivate(),
-            NodeType::TextTranslationNode(node) => node.deactivate(),
+            NodeType::TranscriptNode(node) => node.deactivate(),
+            NodeType::TranslationNode(node) => node.deactivate(),
             NodeType::PersistenceNode(node) => node.deactivate(),
         }
     }

@@ -11,21 +11,21 @@ use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
 };
 
-pub struct SpeechRecognitionResult {
+pub struct TranscriptResult {
     pub start_record_time: DateTime<Local>,
     pub end_record_time: DateTime<Local>,
     pub speech_data: AudioBlock,
     pub speech_text: String,
 }
 
-impl SpeechRecognitionResult {
+impl TranscriptResult {
     pub fn new(
         start_record_time: DateTime<Local>,
         end_record_time: DateTime<Local>,
         speech_data: AudioBlock,
         speech_text: String,
     ) -> Self {
-        SpeechRecognitionResult {
+        TranscriptResult {
             start_record_time,
             end_record_time,
             speech_data,
@@ -71,16 +71,16 @@ impl SpeechRecognitionResult {
     }
 }
 
-pub struct SpeechRecognitionNode {
+pub struct TranscriptNode {
     model_path: Arc<RwLock<PathBuf>>,
-    sender: Option<Sender<SpeechRecognitionResult>>,
+    sender: Option<Sender<TranscriptResult>>,
     input_source: Option<Receiver<ConcatenationResult>>,
-    output_source: Option<Receiver<SpeechRecognitionResult>>,
+    output_source: Option<Receiver<TranscriptResult>>,
 }
 
-impl SpeechRecognitionNode {
+impl TranscriptNode {
     pub fn new(channel_capacity: usize) -> Self {
-        let (sender, output_source) = channel::<SpeechRecognitionResult>(channel_capacity);
+        let (sender, output_source) = channel::<TranscriptResult>(channel_capacity);
         let default_model_path = match env::current_dir() {
             Ok(path) => path.join("ggml-large-v3.bin"),
             Err(error) => panic!("Failed to get current directory： {}", error),
@@ -89,7 +89,7 @@ impl SpeechRecognitionNode {
             "Speech recognition node created with default model path: {:?}",
             default_model_path
         );
-        SpeechRecognitionNode {
+        TranscriptNode {
             sender: Some(sender),
             model_path: Arc::new(RwLock::new(default_model_path)),
             input_source: None,
@@ -118,11 +118,11 @@ impl SpeechRecognitionNode {
     }
 }
 
-impl Node<ConcatenationResult, SpeechRecognitionResult> for SpeechRecognitionNode {
+impl Node<ConcatenationResult, TranscriptResult> for TranscriptNode {
     fn connect_input_source(
         &mut self,
         input_source: Receiver<ConcatenationResult>,
-    ) -> Receiver<SpeechRecognitionResult> {
+    ) -> Receiver<TranscriptResult> {
         self.input_source = Some(input_source);
         self.output_source.take().unwrap_or_else(|| {
             panic!(
@@ -140,8 +140,8 @@ impl Node<ConcatenationResult, SpeechRecognitionResult> for SpeechRecognitionNod
                     .read()
                     .unwrap_or_else(|err| panic!("Failed to read whisper model path: {:#?}", err))
                     .clone();
-                let mut whisper_state = SpeechRecognitionNode::create_whisper_state(model_path);
-                let whisper_full_params = SpeechRecognitionNode::create_whisper_full_params();
+                let mut whisper_state = TranscriptNode::create_whisper_state(model_path);
+                let whisper_full_params = TranscriptNode::create_whisper_full_params();
                 while let Some(result) = receiver.recv().await {
                     let speech_data = result.speech_data();
                     if let Err(err) = whisper_state.full(whisper_full_params.clone(), speech_data) {
@@ -160,7 +160,7 @@ impl Node<ConcatenationResult, SpeechRecognitionResult> for SpeechRecognitionNod
                     }
                     let start_record_time = result.start_record_time();
                     let end_record_time = result.end_record_time();
-                    let speech_recognition_result = SpeechRecognitionResult::new(
+                    let transcript_result = TranscriptResult::new(
                         start_record_time.clone(),
                         end_record_time.clone(),
                         speech_data.clone(),
@@ -169,13 +169,13 @@ impl Node<ConcatenationResult, SpeechRecognitionResult> for SpeechRecognitionNod
                     if let Err(err) = sender
                         .as_ref()
                         .unwrap()
-                        .send(speech_recognition_result)
+                        .send(transcript_result)
                         .await
                     {
-                        log_warn!("Speech recognition node failed to send speech recognition result to the output source: {}", err);
+                        log_warn!("Transcript node failed to send transcript result to the output source: {}", err);
                     }
                 }
-                log_info!("Speech recognition node has been stopped.");
+                log_info!("Transcript node has been stopped.");
             });
         }
     }

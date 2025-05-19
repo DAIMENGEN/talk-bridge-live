@@ -2,7 +2,7 @@ import "./app-home.scss";
 import {useEffect, useRef, useState} from "react";
 import {useAppSelector} from "@src/store/store.ts";
 import {UnlistenFn} from "@tauri-apps/api/event";
-import {TauriAudioRecorderService} from "@src/tauri-services/tauri-audio-recorder-service.ts";
+import {TauriAudioService} from "@src/tauri-services/tauri-audio-service.ts";
 import {log} from "@src/logger.ts";
 import {TauriService} from "@src/tauri-services/tauri-service.ts";
 import {Flex} from "antd";
@@ -29,7 +29,7 @@ export const AppHome = () => {
     useEffect(() => {
         let unlisten: UnlistenFn;
         if (microphoneName) {
-            TauriAudioRecorderService.startRecording(microphoneName).then(eventName => {
+            TauriAudioService.startASR(microphoneName).then(eventName => {
                 TauriService.listen<TranscriptData>(eventName, (event) => {
                     setTranscripts((prevTranscripts) => {
                         const newTranscripts = [...prevTranscripts, event.payload];
@@ -45,7 +45,7 @@ export const AppHome = () => {
         }
         return () => {
             unlisten && unlisten();
-            TauriAudioRecorderService.stopRecording().then(result => log.debug("Stop recording: ", result));
+            TauriAudioService.stopASR().then(result => log.debug("Stop recording: ", result));
         }
     }, [microphoneName]);
     return (

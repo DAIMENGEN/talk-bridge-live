@@ -5,17 +5,16 @@ mod language;
 mod logger;
 mod protos_gen;
 mod silero_vad;
-mod speech_translation;
 mod utils;
 
 use crate::app_state::{
     set_meeting_room, set_microphone_gain, set_silence_streak_threshold, set_speaker,
     set_speech_threshold, AppState,
 };
+use crate::audio::{start_asr, stop_asr};
 use crate::device::device_manager::{
-    list_microphone_names, list_speaker_names, test_microphone, stop_test_microphone,
+    list_microphone_names, list_speaker_names, stop_test_microphone, test_microphone,
 };
-use crate::speech_translation::{start_recording, stop_recording};
 use std::panic;
 use std::path::PathBuf;
 use tauri_plugin_log::{RotationStrategy, Target, TargetKind, TimezoneStrategy};
@@ -47,9 +46,9 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            stop_asr,
+            start_asr,
             set_speaker,
-            stop_recording,
-            start_recording,
             set_meeting_room,
             set_microphone_gain,
             set_speech_threshold,

@@ -1,9 +1,9 @@
 use crate::audio::context::node::concatenation::ConcatenationNode;
 use crate::audio::context::node::gain_control::GainControlNode;
 use crate::audio::context::node::persistence::PersistenceNode;
-use crate::audio::context::node::speech_recognition::SpeechRecognitionNode;
+use crate::audio::context::node::transcript::TranscriptNode;
 use crate::audio::context::node::stream_input::StreamInputNode;
-use crate::audio::context::node::text_translation::TextTranslationNode;
+use crate::audio::context::node::translation::TranslationNode;
 use crate::audio::context::node::vocal_isolation::VocalIsolationNode;
 use crate::audio::context::node::voice_activity_detection::VoiceActivityDetectionNode;
 use crate::audio::context::node::NodeType;
@@ -69,12 +69,12 @@ impl MicrophoneContext {
         self.connect_audio_node(NodeType::ConcatenationNode(Box::new(audio_node)))
     }
 
-    pub fn connect_speech_recognition_node(&mut self, audio_node: SpeechRecognitionNode) {
-        self.connect_audio_node(NodeType::SpeechRecognitionNode(Box::new(audio_node)))
+    pub fn connect_transcript_node(&mut self, audio_node: TranscriptNode) {
+        self.connect_audio_node(NodeType::TranscriptNode(Box::new(audio_node)))
     }
 
-    pub fn connect_text_translation_node(&mut self, audio_node: TextTranslationNode) {
-        self.connect_audio_node(NodeType::TextTranslationNode(Box::new(audio_node)))
+    pub fn connect_translation_node(&mut self, audio_node: TranslationNode) {
+        self.connect_audio_node(NodeType::TranslationNode(Box::new(audio_node)))
     }
 
     pub fn connect_persistence_node(&mut self, audio_node: PersistenceNode) {
@@ -103,12 +103,12 @@ impl MicrophoneContext {
         ConcatenationNode::new(1024)
     }
 
-    pub fn create_speech_recognition_node(&self) -> SpeechRecognitionNode {
-        SpeechRecognitionNode::new(1024)
+    pub fn create_transcript_node(&self) -> TranscriptNode {
+        TranscriptNode::new(1024)
     }
 
-    pub fn create_text_translation_node(&self) -> TextTranslationNode {
-        TextTranslationNode::new(1024)
+    pub fn create_translation_node(&self) -> TranslationNode {
+        TranslationNode::new(1024)
     }
 
     pub fn create_persistence_node(&self) -> PersistenceNode {

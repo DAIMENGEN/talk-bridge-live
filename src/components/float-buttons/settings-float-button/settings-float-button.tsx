@@ -103,7 +103,7 @@ export const AudioSettings = () => {
     const [speakerNames, setSpeakerNames] = useState<SelectOption[]>([]);
     const [microphoneNames, setMicrophoneNames] = useState<SelectOption[]>([]);
     const [isTestingMicrophone, setIsTestingMicrophone] = useState(false);
-    const [microphoneProbability, setMicrophoneProbability] = useState<number>(0);
+    const [microphoneSpeechProbability, setMicrophoneSpeechProbability] = useState<number>(0);
     const microphoneGain = useAppSelector((state) => state.appSettings.microphoneGain);
     const microphoneName = useAppSelector((state) => state.appSettings.microphoneName);
     const speechThreshold = useAppSelector((state) => state.appSettings.speechThreshold);
@@ -127,7 +127,7 @@ export const AudioSettings = () => {
             TauriDeviceService.testMicrophone(microphoneName).then(eventName => {
                 if (cancelled) return;
                 TauriService.listen<number>(eventName, (event) => {
-                    setMicrophoneProbability(event.payload);
+                    setMicrophoneSpeechProbability(event.payload);
                 }).then(result => {
                     if (!cancelled) {
                         unlisten = result;
@@ -162,7 +162,7 @@ export const AudioSettings = () => {
                         </Space>
                         <div className={"indicator-container"}>
                             <div>Output Volume</div>
-                            <VoiceActivityIndicator probability={0.85}/>
+                            <VoiceActivityIndicator probability={0}/>
                         </div>
                         <div className={"slider-container"}>
                             <div>Volume</div>
@@ -188,19 +188,23 @@ export const AudioSettings = () => {
                                         appDispatch(setMicrophoneName(value));
                                     }}/>
                             <Button
-                                onClick={() => setIsTestingMicrophone(value => !value)}>{isTestingMicrophone ? "Stop" : "Test"}</Button>
+                                onClick={() => {
+                                    isTestingMicrophone && setMicrophoneSpeechProbability(0);
+                                    setIsTestingMicrophone(value => !value);
+                                }}>{isTestingMicrophone ? "Stop" : "Test"}</Button>
                         </Space>
                         <div className={"indicator-container"}>
                             <div>Speech Detection</div>
-                            <VoiceActivityIndicator probability={microphoneProbability}/>
+                            <VoiceActivityIndicator probability={microphoneSpeechProbability}/>
                         </div>
                         <div className={"slider-container"}>
                             <div>Gain</div>
-                            <Slider min={0} max={3} step={0.1} defaultValue={microphoneGain} onChangeComplete={(value) => {
-                                TauriStateService.setMicrophoneGain(value).then(_ => {
-                                    appDispatch(setMicrophoneGain(value));
-                                }).catch(log.error);
-                            }} styles={{
+                            <Slider min={0} max={3} step={0.1} defaultValue={microphoneGain}
+                                    onChangeComplete={(value) => {
+                                        TauriStateService.setMicrophoneGain(value).then(_ => {
+                                            appDispatch(setMicrophoneGain(value));
+                                        }).catch(log.error);
+                                    }} styles={{
                                 root: {
                                     width: "100%"
                                 }
@@ -208,11 +212,12 @@ export const AudioSettings = () => {
                         </div>
                         <div className={"slider-container"}>
                             <div>Speech Threshold</div>
-                            <Slider min={0} max={1} step={0.05} defaultValue={speechThreshold} onChangeComplete={(value) => {
-                                TauriStateService.setSpeechThreshold(value).then(_ => {
-                                    appDispatch(setSpeechThreshold(value));
-                                }).catch(log.error);
-                            }} styles={{
+                            <Slider min={0} max={1} step={0.05} defaultValue={speechThreshold}
+                                    onChangeComplete={(value) => {
+                                        TauriStateService.setSpeechThreshold(value).then(_ => {
+                                            appDispatch(setSpeechThreshold(value));
+                                        }).catch(log.error);
+                                    }} styles={{
                                 root: {
                                     width: "100%"
                                 }
@@ -220,11 +225,12 @@ export const AudioSettings = () => {
                         </div>
                         <div className={"slider-container"}>
                             <div>Silence Streak Threshold</div>
-                            <Slider min={0} max={10} step={1} defaultValue={silenceStreakThreshold} onChangeComplete={(value) => {
-                                TauriStateService.setSilenceStreakThreshold(value).then(_ => {
-                                    appDispatch(setSilenceStreakThreshold(value));
-                                }).catch(log.error);
-                            }} styles={{
+                            <Slider min={0} max={10} step={1} defaultValue={silenceStreakThreshold}
+                                    onChangeComplete={(value) => {
+                                        TauriStateService.setSilenceStreakThreshold(value).then(_ => {
+                                            appDispatch(setSilenceStreakThreshold(value));
+                                        }).catch(log.error);
+                                    }} styles={{
                                 root: {
                                     width: "100%"
                                 }

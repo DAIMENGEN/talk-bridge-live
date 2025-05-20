@@ -10,6 +10,7 @@ use crate::audio::context::node::NodeType;
 use crate::device::input::microphone::Microphone;
 use std::error::Error;
 use tokio::sync::mpsc::Receiver;
+use crate::audio::AudioBlock;
 
 pub struct MicrophoneContext {
     microphone: Microphone,
@@ -93,6 +94,12 @@ impl MicrophoneContext {
         let sample_rate = self.microphone.get_target_sample_rate() as u32;
         let chunk_size = self.microphone.get_output_frames_size() as usize;
         VoiceActivityDetectionNode::new(1024, sample_rate, chunk_size)
+    }
+    
+    pub fn create_vad_node_as_tail_node(&mut self, input_source: Receiver<AudioBlock>) -> VoiceActivityDetectionNode {
+        let sample_rate = self.microphone.get_target_sample_rate() as u32;
+        let chunk_size = self.microphone.get_output_frames_size() as usize;
+        VoiceActivityDetectionNode::new_tail(sample_rate, chunk_size, input_source)
     }
 
     pub fn create_vocal_isolation_node(&self) -> VocalIsolationNode {

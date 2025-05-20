@@ -87,28 +87,21 @@ pub fn test_microphone(
                 Ok(receiver) => {
                     let mut stream_input_node = microphone_context.create_stream_input_node();
                     let mut gain_node = microphone_context.create_gain_control_node();
-                    let mut vad_node = microphone_context.create_vad_node();
                     let receiver = stream_input_node.connect_input_source(receiver);
                     let receiver = gain_node.connect_input_source(receiver);
-                    let mut receiver = vad_node.connect_input_source(receiver);
+                    let mut vad_node = microphone_context.create_vad_node_as_tail_node(receiver);
                     let microphone_gain = app_state.get_microphone_gain();
                     gain_node.set_gain(microphone_gain);
+                    let event_name_clone = event_name.clone();
+                    vad_node.set_detection_callback(Box::new(move |probability| {
+                        if let Err(err) = app_handle.emit(&event_name_clone, probability) {
+                            log_error!("Failed to send the probability to the frontend: {}", err);
+                        }
+                    }));
                     microphone_context.connect_stream_input_node(stream_input_node);
                     microphone_context.connect_gain_control_node(gain_node);
                     microphone_context.connect_vad_node(vad_node);
                     microphone_context.start();
-                    let event_name_clone = event_name.clone();
-                    tokio::spawn(async move {
-                        while let Some(vad_audio_frame) = receiver.recv().await {
-                            let probability = vad_audio_frame.probability();
-                            
-                            if let Err(err) =
-                                app_handle.emit(&event_name_clone, probability)
-                            {
-                                log_error!("Failed to send the probability to the frontend: {}", err);
-                            }
-                        }
-                    });
                     match app_state.set_microphone_context_test(microphone_context) {
                         Ok(_) => Ok(event_name),
                         Err(err) => Err(format!("Failed to save microphone context: {}", err)),

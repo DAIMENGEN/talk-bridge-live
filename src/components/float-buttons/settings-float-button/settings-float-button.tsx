@@ -162,7 +162,7 @@ export const AudioSettings = () => {
                         </Space>
                         <div className={"indicator-container"}>
                             <div>Output Volume</div>
-                            <VoiceActivityIndicator probability={0}/>
+                            <div style={{width: "100%"}}><VoiceActivityIndicator probability={0}/></div>
                         </div>
                         <div className={"slider-container"}>
                             <div>Volume</div>
@@ -195,7 +195,7 @@ export const AudioSettings = () => {
                         </Space>
                         <div className={"indicator-container"}>
                             <div>Speech Detection</div>
-                            <VoiceActivityIndicator probability={microphoneSpeechProbability}/>
+                            <div style={{width: "100%"}}><VoiceActivityIndicator probability={microphoneSpeechProbability}/></div>
                         </div>
                         <div className={"slider-container"}>
                             <div>Gain</div>

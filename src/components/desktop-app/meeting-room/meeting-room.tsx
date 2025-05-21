@@ -3,6 +3,7 @@ import {useState} from "react";
 import {FloatButton} from "antd";
 import {MoreIcon} from "@src/icons/more/more-icon.tsx";
 import {DARK_MODE_BACKGROUND_COLOR} from "@src/theme/theme.ts";
+import {VoiceActivityVisualizer} from "@src/components/common";
 import {MicrophoneFloatButton, SettingsFloatButton} from "@src/components/float-buttons";
 
 export const MeetingRoom = () => {
@@ -17,6 +18,9 @@ export const MeetingRoom = () => {
                 <MicrophoneFloatButton/>
                 <SettingsFloatButton/>
             </FloatButton.Group>
+            <div className={"voice-activity-visualizer-container"}>
+                <VoiceActivityVisualizer/>
+            </div>
         </div>
     )
 }

@@ -1,17 +1,9 @@
 @use "@src/theme/theme.scss" as *;
 .voice-activity-visualizer {
-  gap: 2px;
-  height: 40px;
-  padding: 10px;
-  display: flex;
-  overflow: hidden;
-  align-items: center;
-  justify-content: flex-start;
-
+  height: 20px;
   .bar {
     width: 2px;
     border-radius: 1px;
-    transition: height 0.3s linear;
-    background-color: $dark-mode-font-color;
+    background-color: rgba(208, 212, 217, 0.1);
   }
 }

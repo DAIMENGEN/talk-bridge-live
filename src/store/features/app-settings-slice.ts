@@ -23,7 +23,7 @@ const initialState: AppSettingsStore = {
 }
 
 const appSettingsSlice = createSlice({
-    name: "appSettings",
+    name: "app-settings",
     initialState,
     reducers: {
         setIsOpenSettings: (state, action: PayloadAction<boolean>) => {

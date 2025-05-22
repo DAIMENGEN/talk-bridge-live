@@ -16,6 +16,7 @@ pub type AudioBlock = Vec<AudioSample>;
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Utterance {
+    speaker: String,
     datetime: String,
     speech_data: AudioBlock,
     speech_text: String,
@@ -72,6 +73,7 @@ pub fn start_asr(
                     if let Err(err) = app_handle.emit(
                         EVENT_NAME,
                         Utterance {
+                            speaker: "Mengen.dai".to_owned(),
                             datetime: format_local_datetime(result.start_record_time),
                             speech_text,
                             translated_texts,

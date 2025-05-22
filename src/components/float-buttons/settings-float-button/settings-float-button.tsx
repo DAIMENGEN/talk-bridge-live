@@ -104,8 +104,8 @@ export const AudioSettings = () => {
     const [microphoneNames, setMicrophoneNames] = useState<SelectOption[]>([]);
     const [isTestingMicrophone, setIsTestingMicrophone] = useState(false);
     const [microphoneSpeechProbability, setMicrophoneSpeechProbability] = useState<number>(0);
-    const microphoneGain = useAppSelector((state) => state.appSettings.microphoneGain);
-    const microphoneName = useAppSelector((state) => state.appSettings.microphoneName);
+    const microphoneGain = useAppSelector((state) => state.appSettings.microphone.gain);
+    const microphoneName = useAppSelector((state) => state.appSettings.microphone.name);
     const speechThreshold = useAppSelector((state) => state.appSettings.speechThreshold);
     const silenceStreakThreshold = useAppSelector((state) => state.appSettings.silenceStreakThreshold);
 

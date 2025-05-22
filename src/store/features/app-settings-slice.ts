@@ -1,19 +1,26 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 
 export type AppSettingsStore = {
-    microphoneGain: number;
     speechThreshold: number;
     silenceStreakThreshold: number;
-    speakerName?: string;
-    microphoneName?: string;
+    speaker: {
+        name?: string;
+    }
+    microphone: {
+        name?: string;
+        gain: number;
+        isMuted: boolean;
+    }
 }
 
 const initialState: AppSettingsStore = {
-    microphoneGain: 1.0,
     speechThreshold: 0.75,
     silenceStreakThreshold: 3,
-    speakerName: undefined,
-    microphoneName: undefined
+    speaker: {},
+    microphone: {
+        gain: 1.0,
+        isMuted: false
+    }
 }
 
 const appSettingsSlice = createSlice({
@@ -21,7 +28,7 @@ const appSettingsSlice = createSlice({
     initialState,
     reducers: {
         setMicrophoneGain: (state, action: PayloadAction<number>) => {
-            state.microphoneGain = action.payload;
+            state.microphone.gain = action.payload;
         },
         setSpeechThreshold: (state, action: PayloadAction<number>) => {
             state.speechThreshold = action.payload;
@@ -30,10 +37,10 @@ const appSettingsSlice = createSlice({
             state.silenceStreakThreshold = action.payload;
         },
         setSpeakerName: (state, action: PayloadAction<string | undefined>) => {
-            state.speakerName = action.payload;
+            state.speaker.name = action.payload;
         },
         setMicrophoneName: (state, action: PayloadAction<string | undefined>) => {
-            state.microphoneName = action.payload;
+            state.microphone.name = action.payload;
         }
     }
 });
@@ -42,7 +49,6 @@ export const {
     setSilenceStreakThreshold,
     setMicrophoneGain,
     setSpeechThreshold,
-    setSpeakerName,
     setMicrophoneName
 } = appSettingsSlice.actions;
 
